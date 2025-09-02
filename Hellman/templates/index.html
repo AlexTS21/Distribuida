@@ -2,46 +2,45 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Algoritmo Diffie-Hellman</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="../static/style.css">
 </head>
 <body>
     <div class="container">
         <h1>Algoritmo Diffie-Hellman</h1>
 
-        <form id="hellmanForm" method="post">
-            <label>P:</label>
-            <input type="number" name="P" required>
+        <form id="hellmanForm">
+            <label for="P">P (Número primo):</label>
+            <input type="number" id="P" name="P" required min="2">
             
-            <label>G:</label>
-            <input type="number" name="G" required>
+            <label for="G">G (Base):</label>
+            <input type="number" id="G" name="G" required min="1">
             
-            <label>A (privado):</label>
-            <input type="number" name="A" required>
+            <label for="A">Llave privada de A:</label>
+            <input type="number" id="A" name="A" required min="1">
             
-            <label>B (privado):</label>
-            <input type="number" name="B" required>
+            <label for="B">Llave privada de B:</label>
+            <input type="number" id="B" name="B" required min="1">
             
             <button type="submit">Calcular</button>
         </form>
 
-        
-
         <!-- Lista de pasos -->
         <div class="results">
-            <!-- Subtítulos animados -->
             <h2>Pasos del cálculo</h2>
-            <div class="subtitle" id="subtitle"></div>
-            <ol id="stepsList">
-                {% if steps %}
-                    {% for step in steps %}
-                        <li>{{ step }}</li>
-                    {% endfor %}
-                {% endif %}
-            </ol>
+            
+            <!-- Contenedor para el paso actual con animación -->
+            <div id="currentStep" class="step-container"></div>
+            
+            <!-- Lista completa de pasos -->
+            <div class="steps-list">
+                <ol id="stepsList"></ol>
+            </div>
+            
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="../static/script.js"></script>
 </body>
 </html>
