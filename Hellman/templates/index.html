@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Algoritmo Diffie-Hellman</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Algoritmo Diffie-Hellman</h1>
+
+        <form id="hellmanForm" method="post">
+            <label>P:</label>
+            <input type="number" name="P" required>
+            
+            <label>G:</label>
+            <input type="number" name="G" required>
+            
+            <label>A (privado):</label>
+            <input type="number" name="A" required>
+            
+            <label>B (privado):</label>
+            <input type="number" name="B" required>
+            
+            <button type="submit">Calcular</button>
+        </form>
+
+        
+
+        <!-- Lista de pasos -->
+        <div class="results">
+            <!-- Subtítulos animados -->
+            <h2>Pasos del cálculo</h2>
+            <div class="subtitle" id="subtitle"></div>
+            <ol id="stepsList">
+                {% if steps %}
+                    {% for step in steps %}
+                        <li>{{ step }}</li>
+                    {% endfor %}
+                {% endif %}
+            </ol>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
