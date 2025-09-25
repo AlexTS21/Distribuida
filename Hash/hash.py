@@ -39,17 +39,15 @@ class HashTable:
             #Significa que la lista ya se creo entonces se agrega el dato al final
             self.record[key] = [value, self.table[hashKey].value.size]
             self.table[hashKey].value.insert(value)
-            
+            return f"key: {key} -> hashKey: {hashKey} se incerta en la lista ligada del indice {hashKey} en posicion {self.table[hashKey].value.size-1}"
         else:
             self.table[hashKey].flag = 2
             ant = self.table[hashKey].value
             self.table[hashKey].value = LinkedList()
             self.table[hashKey].value.insert(ant)
             #Incertar todos los valores que estaban dentro de la tabla
-            print(self.record)
             for k, v in self.record.items():
                 if hashKey == self.hashFunction(k, self.size):
-                    print(k, v)
                     if v[1] != 0:
                         plusIndex = self.record[k][1]
                         self.table[plusIndex + hashKey].value = None
@@ -58,6 +56,7 @@ class HashTable:
                         self.table[hashKey].value.insert(v[0])
             self.record[key] = [value,  self.table[hashKey].value.size]
             self.table[hashKey].value.insert(value)
+            return f"key: {key} -> hashKey: {hashKey} Tabla llena, se crea lista ligada en posicion {hashKey} todos los elementos con hashKey: {hashKey} se incertan en la lista ligada"
             
             
     def addInNextRow(self, key, value):
@@ -69,8 +68,8 @@ class HashTable:
                 self.table[hashKey].flag = 0
                 #Agregar al historial 
                 self.record[key] = [value, 0]
-                return True
-            else:
+                return f"key: {key} -> hashKey: {hashKey} sin colision se inserta en {hashKey}"
+            elif self.table[hashKey].flag != 2 and self.table[hashKey].value != None:
                 self.table[hashKey].flag = 1
                 i = hashKey
                 #Revisar la proxima casilla vacia y guardar indice
@@ -82,7 +81,7 @@ class HashTable:
                 self.table[i].flag = 1
                 #Agregar al historial 
                 self.record[key] = [value, i - hashKey]
-                return True
+                return f"key: {key} -> hashKey: {hashKey} colision en {hashKey} incerta en siguiente casilla disponible {i}"
         return False
 
     def isFull(self):
@@ -90,12 +89,15 @@ class HashTable:
             if row.flag == None:
                 return False
         return True
-
+    
     def addValue(self, key, value):
         #Si el metodo de incercion al siguiente espacio falla entonces hacer lista ligada
-        if not self.addInNextRow(key, value):
-            self.addInLinkedList(key, value)
-       
+        message = self.addInNextRow(key, value)
+        print(message)
+        if not message:
+            message = self.addInLinkedList(key, value)
+        return message
+    
     def getValue(self, key):
         hashKey = self.hashFunction(key, self.size)
         if self.table[hashKey].flag == 0:
@@ -107,7 +109,7 @@ class HashTable:
         elif self.table[hashKey].flag == 2:
             listIndex = self.record[key][1]
             return self.table[hashKey].value.getValue(listIndex)
-        return "Valor no encontrado"
+        return False
 
     def printTable(self):
         print(f"i -> falg  |   value")
@@ -116,13 +118,14 @@ class HashTable:
 
 
 
-#la filosofia es agregar cuantos elementos posibles a la tabla hash con el metodo uno (Incercion al siguiente)
+#la filosofia es agregar cuantos elementos posibles a la tabla hash con el metodo uno (Incercion al siguiente) si ya no es posible recurrir al metodo de lista ligada 
 hash_Table = HashTable(3, hashFunctionSuma)
 
 hash_Table.addValue("omar", 10)
 hash_Table.addValue("maro", 12)
 hash_Table.addValue("ramo", 13)
 hash_Table.printTable()
+print(hash_Table.getValue("ramo"))
 
 hash_Table.addValue("mora", 14)
 hash_Table.printTable()

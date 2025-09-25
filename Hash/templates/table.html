@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+<head>
+    <title>Tabla Hash</title>
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+    <header>Practica 2</header>
+    <main>
+        <div class="table-container">
+            <h2>Claves y Valores (Usuario)</h2>
+            <table>
+                <tr>
+                    <th>Clave</th>
+                    <th>Valor</th>
+                </tr>
+                {% for key, val in user_data %}
+                <tr>
+                    <td>{{ key }}</td>
+                    <td>{{ val }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+
+        </div>
+        <div class="table-container">
+            <h2>Tabla Hash (Índice → Valor)</h2>
+
+            <table>
+                <tr>
+                    <th>Índice</th>
+                    <th>Valor</th>
+                </tr>
+                {% for idx, val in table %}
+                <tr>
+                    <td>{{ idx }}</td>
+                    <td>
+                        {% if val is iterable and val is not string and val|length > 0 %}
+                            <select>
+                                {% for v in val %}
+                                    <option>{{ v }}</option>
+                                {% endfor %}
+                            </select>
+                        {% else %}
+                            {{ val }}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+
+        </div>
+    </main>
+
+    <div class="actions">
+         <h3>Agregar valor</h3>
+        <form method="post">
+            Key: <input type="text" name="key" required>
+            Value: <input type="text" name="value" required>
+            <button type="submit" name="add">Agregar</button>
+        </form>
+
+        <h3>Consultar valor</h3>
+        <form method="post">
+            Key: <input type="text" name="key_query" required>
+            <button type="submit" name="get">Consultar</button>
+        </form>
+
+        {% if message %}
+            <h3><b>{{ message }}</b></h3>
+        {% endif %}
+
+    </div>
+   
+</body>
+</html>
