@@ -61,7 +61,7 @@ class HashTable:
             #Lista ligada ya generada, incertar en ultima posicion
             self.record[key] = [value, hashKey, self.table[hashKey].value.size]
             self.table[hashKey].value.insert(Row(value, key, hashKey))
-            return f"El elemento se agrego en el indice {self.table[hashKey].value.size} de la lista ligada en {hashKey} (tabla)"
+            return f"Modulo {hashKey}, el elemento se agrego en el indice {self.table[hashKey].value.size} de la lista ligada en {hashKey} (tabla)"
         else:
             if hashKey == self.table[hashKey].module:
                 self.moveValues(hashKey)
@@ -85,7 +85,7 @@ class HashTable:
                 self.table[hashKey].module = hashKey
                 self.table[hashKey].flag = 0
                 self.record[key] = [value, hashKey, hashKey]
-                return f"Sin colision, {key} se inserto posicion {hashKey}"
+                return f"Modulo {hashKey}, sin colision, {key} se inserto posicion {hashKey}"
             else:
                 self.table[hashKey].flag = 1
                 #Revisar la proxima casilla vacia y guardar indice
@@ -99,7 +99,7 @@ class HashTable:
                 self.table[i].module = hashKey
                 self.table[i].flag = 1
                 self.record[key] = [value, hashKey, i]
-                return f"Con colision, {key} se inserto posicion vacia proxima {i}"
+                return f"Modulo {hashKey}, con colision, {key} se inserto posicion vacia proxima {i}"
         return 
 
 
@@ -120,14 +120,14 @@ class HashTable:
     def getValue(self, key):
         hashKey = self.hashFunction(key, self.size)
         if self.table[hashKey].flag == 0:
-            return self.table[hashKey].value
+            return f"{key} tiene valor de {self.table[hashKey].value}, modulo{hashKey}. Encontrado en la posicion {hashKey} de la tabla Hash"
         elif self.table[hashKey].flag == 1:
             #Revisar el historial
             i = self.record[key][2]
-            return self.table[i].value
+            return f"{key} tiene valor de {self.table[i].value}, modulo{hashKey}. Encontrado en la posicion {i} de la tabla Hash"
         elif self.table[hashKey].flag == 2:
-            listIndex = self.record[key][1]
-            return self.table[hashKey].value.getValue(listIndex)
+            listIndex = self.record[key][2]
+            return f"{key} tiene valor de {self.table[hashKey].value.getValue(listIndex).value}, modulo{hashKey}. Encontrado en el indice {listIndex} de la lista ligada en posicion {hashKey} de la tabla hash"
         return False
 
     def printTable(self):
@@ -152,6 +152,7 @@ hash_Table.addValue("hoal", 15)
 hash_Table.addValue("ohja", 16)
 
 hash_Table.printTable()
+print(hash_Table.getValue("ramo"))
 #hash_Table.addValue("jesu", 20)
 #hash_Table.printTable()
 #

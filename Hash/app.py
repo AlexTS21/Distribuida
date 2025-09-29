@@ -33,7 +33,7 @@ def table():
             if key in hash_table.record.keys():
                 result = hash_table.getValue(key)
                 if result:
-                    message = f"Valor de {key}: {result}"
+                    message = f"{result}"
                 else:
                     message = "Valor no encontrado"
             else:
@@ -45,11 +45,15 @@ def table():
     for i, row in enumerate(hash_table.table):
         if row.flag == 2 and isinstance(row.value, LinkedList):
             valores = []
+            claves = []
             for idx in range(len(row.value)):
-                valores.append(row.value.getValue(idx))
-            table_data.append((i, valores))
+                nodo = row.value.getValue(idx)
+                valores.append(nodo.value)
+                claves.append(nodo.key)
+            table_data.append((i, {"keys": claves, "values": valores}))
         else:
-            table_data.append((i, row.value))
+            table_data.append((i, {"key": row.key, "value": row.value}))
+
 
     # Preparamos clave → valor
     user_data = [(k, v[0]) for k, v in hash_table.record.items()]

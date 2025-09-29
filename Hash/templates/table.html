@@ -6,7 +6,11 @@
 </head>
 <body>
     <header>Practica 2</header>
+    {% if message %}
+            <h3 class="mess"><b>{{ message }}</b></h3>
+    {% endif %}
     <main>
+         
         <div class="table-container">
             <h2>Claves y Valores (Usuario)</h2>
             <table>
@@ -24,32 +28,44 @@
 
         </div>
         <div class="table-container">
-            <h2>Tabla Hash (Índice → Valor)</h2>
+    <div class="table-container">
+    <h2>Tabla Hash (Índice → Clave y Valor)</h2>
+    <table>
+        <tr>
+            <th>Índice</th>
+            <th>Clave</th>
+            <th>Valor</th>
+        </tr>
+        {% for idx, data in table %}
+        <tr>
+            <td>{{ idx }}</td>
+            <td>
+                {% if "keys" in data and data["keys"]|length > 0 %}
+                    <select>
+                        {% for k in data["keys"] %}
+                            <option>{{ k }}</option>
+                        {% endfor %}
+                    </select>
+                {% else %}
+                    {{ data["key"] }}
+                {% endif %}
+            </td>
+            <td>
+                {% if "values" in data and data["values"]|length > 0 %}
+                    <select>
+                        {% for v in data["values"] %}
+                            <option>{{ v }}</option>
+                        {% endfor %}
+                    </select>
+                {% else %}
+                    {{ data["value"] }}
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
 
-            <table>
-                <tr>
-                    <th>Índice</th>
-                    <th>Valor</th>
-                </tr>
-                {% for idx, val in table %}
-                <tr>
-                    <td>{{ idx }}</td>
-                    <td>
-                        {% if val is iterable and val is not string and val|length > 0 %}
-                            <select>
-                                {% for v in val %}
-                                    <option>{{ v }}</option>
-                                {% endfor %}
-                            </select>
-                        {% else %}
-                            {{ val }}
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </table>
-
-        </div>
     </main>
 
     <div class="actions">
@@ -66,9 +82,7 @@
             <button type="submit" name="get">Consultar</button>
         </form>
 
-        {% if message %}
-            <h3><b>{{ message }}</b></h3>
-        {% endif %}
+       
 
     </div>
    
