@@ -1,7 +1,7 @@
 
 public class multiplicacion {
     public int multiplicacion(int a, int b){
-      System.out.println("Llamada para sumar dos datos (" + a + ", " + b + ")");
+      System.out.println("Llamada para multiplicar dos datos (" + a + ", " + b + ")");
 
         // servidor ocupado
         try {
@@ -10,7 +10,7 @@ public class multiplicacion {
             Thread.currentThread().interrupt();
         }
 
-        System.out.println("Suma multiplicacion: " + a + " + " + b + " = " + (a + b));
+        System.out.println("Multiplicacion completada " + a + " * " + b + " = " + (a * b));
       return a * b;
     }
 }

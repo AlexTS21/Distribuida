@@ -425,7 +425,7 @@ public class clientevista extends javax.swing.JFrame {
 
                 Object[] params = new Object[]{num1, num2};
                 Double resultado = (Double) clienteTemporal.execute("MiServidorRPC_Divicion.divicion", params);
-
+                
                 javax.swing.SwingUtilities.invokeLater(() -> {
                     jTextArea1.append("División: " + num1 + " / " + num2 + " = " + resultado + "\n");
                     jLabel7.setText("Conectado");
