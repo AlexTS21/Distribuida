@@ -1,7 +1,7 @@
 
 public class divicion {
-     public double divicion(int a, int b){
-      System.out.println("Llamada para dividir dos datos (" + a + ", " + b + ")");
+     public int divicion(int a, int b){
+      System.out.println("Llamada para sumar dos datos (" + a + ", " + b + ")");
 
         // servidor ocupado
         try {
@@ -9,9 +9,9 @@ public class divicion {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-        double result = a/b;
-        System.out.println("Divicion completada: " + a + " / " + b + " = " + result);
-      return result;
+
+        System.out.println("divicion completada: " + a + " + " + b + " = " + (a + b));
+      return a / b;
     }
 }
 

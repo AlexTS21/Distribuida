@@ -3,6 +3,7 @@ import org.apache.xmlrpc.server.XmlRpcServer; // Clase principal que maneja la l
 import org.apache.xmlrpc.webserver.WebServer; // Servidor web embebido simple que puede escuchar peticiones HTTP en un puerto específico
 
 public class servidor {
+    
      public static class Mensajes {
         public String recibir(String mensaje) {
             System.out.println("MENSAJE DEL CLIENTE: " + mensaje);
@@ -20,7 +21,7 @@ public class servidor {
 
             PropertyHandlerMapping phm = new PropertyHandlerMapping();
             phm.addHandler("MiServidorRPC_Suma", suma.class);
-            phm.addHandler("MiServidorRPC_Resta", resta.class);
+            phm.addHandler("MiServidorRPC_Rest", resta.class);
             phm.addHandler("MiServidorRPC_Multiplicacion", multiplicacion.class);
             phm.addHandler("MiServidorRPC_Divicion", divicion.class);
             phm.addHandler("Mensajes", Mensajes.class);

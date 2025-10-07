@@ -6,6 +6,8 @@ public class clientevista extends javax.swing.JFrame {
 
      private XmlRpcClient client;
     private boolean intentandoReconectar = false;
+     private String operacionPendienteId = null; // Para recuperación
+    private Thread hiloOperacionActual = null; // Para poder interrumpir
     public clientevista() {
         initComponents();
         habilitarOperaciones(false);
@@ -34,6 +36,8 @@ public class clientevista extends javax.swing.JFrame {
         jTextArea1 = new javax.swing.JTextArea();
         jLabel7 = new javax.swing.JLabel();
         jButton7 = new javax.swing.JButton();
+        jButton8 = new javax.swing.JButton();
+        jButton9 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -100,6 +104,15 @@ public class clientevista extends javax.swing.JFrame {
             }
         });
 
+        jButton8.setText("jButton8");
+
+        jButton9.setText("jButton9");
+        jButton9.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton9ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -132,22 +145,27 @@ public class clientevista extends javax.swing.JFrame {
                                     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                         .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                            .addGap(18, 18, 18)
-                            .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addGap(6, 6, 6)
-                                        .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 106, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(layout.createSequentialGroup()
+                                    .addGap(18, 18, 18)
+                                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addGroup(layout.createSequentialGroup()
+                                                .addGap(6, 6, 6)
+                                                .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                            .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 106, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addGroup(layout.createSequentialGroup()
+                                    .addGap(100, 100, 100)
+                                    .addComponent(jButton8))
+                                .addGroup(layout.createSequentialGroup()
+                                    .addGap(100, 100, 100)
+                                    .addComponent(jButton9))))))
                 .addContainerGap(30, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(89, 89, 89))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jButton7)
@@ -172,76 +190,117 @@ public class clientevista extends javax.swing.JFrame {
                     .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(2, 2, 2)
                 .addComponent(jButton7)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel5)
-                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(32, 32, 32)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton3)
-                    .addComponent(jButton4)
-                    .addComponent(jButton5)
-                    .addComponent(jButton6))
-                .addGap(35, 35, 35)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(21, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel5)
+                            .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jButton9))
+                        .addGap(31, 31, 31)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jButton3)
+                            .addComponent(jButton4)
+                            .addComponent(jButton5)
+                            .addComponent(jButton6))
+                        .addGap(35, 35, 35)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap(21, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jButton8)
+                        .addGap(18, 18, 18))))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        try {
+      try {
         int num1 = Integer.parseInt(jTextField1.getText());
         int num2 = Integer.parseInt(jTextField2.getText());
 
-        // Deshabilitar los botones 
         habilitarOperaciones(false);
-        jTextArea1.append("Enviando petición de suma al servidor...\n");
-        jLabel7.setText("Enviando...");
+        jTextArea1.append("Enviando petición de suma: " + num1 + " + " + num2 + "\n");
+        jLabel7.setText("Procesando...");
         jLabel7.setForeground(java.awt.Color.ORANGE);
 
-        
-        new Thread(() -> {
+        final String operationId = "SUM_" + System.currentTimeMillis();
+        operacionPendienteId = operationId;
+
+        // Guardar el hilo actual para poder interrumpirlo al desconectar
+        hiloOperacionActual = new Thread(() -> {
             try {
-                // Configuración con tiempo 
                 XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
                 config.setServerURL(new URL("http://localhost:8080/"));
-                config.setConnectionTimeout(3000); // tiempo para volver a cnxtar
-                config.setReplyTimeout(15000); // tiempo max que espera para volver a conctrar
+                config.setConnectionTimeout(3000);
+                config.setReplyTimeout(10000);
 
                 XmlRpcClient clienteTemporal = new XmlRpcClient();
                 clienteTemporal.setConfig(config);
 
-                Object[] params = new Object[]{num1, num2};
-                Integer resultado = (Integer) clienteTemporal.execute("MiServidorRPC_Suma.sumar", params);
+                // Usar el nuevo método con ID de operación
+                Object[] params = new Object[]{num1, num2, operationId};
+                String respuesta = (String) clienteTemporal.execute("MiServidorRPC_Suma.sumarConId", params);
 
-                // klegamos aqui si se pudo reconectar el servidor 
-                javax.swing.SwingUtilities.invokeLater(() -> {
-                    jTextArea1.append("Suma: " + num1 + " + " + num2 + " = " + resultado + "\n");
-                    jLabel7.setText("Conectado");
-                    jLabel7.setForeground(new java.awt.Color(0, 153, 0));
+                // Verificar si el hilo fue interrumpido (desconexión)
+                if (Thread.currentThread().isInterrupted()) {
+                    javax.swing.SwingUtilities.invokeLater(() -> {
+                        jTextArea1.append("DESCONECTADO DURANTE LA OPERACIÓN\n");
+                        jTextArea1.append("El servidor calculó " + num1 + "+" + num2 + " pero no recibimos el resultado\n");
+                    });
+                    return;
+                }
+
+                // Si no fue interrumpido, procesar respuesta normal
+                if (respuesta.startsWith("EXITO_")) {
+                    int resultado = Integer.parseInt(respuesta.substring(6));
+                    javax.swing.SwingUtilities.invokeLater(() -> {
+                        jTextArea1.append("Respuesta recibida: " + num1 + " + " + num2 + " = " + resultado + "\n");
+                        jLabel7.setText("Conectado");
+                        jLabel7.setForeground(new java.awt.Color(0, 153, 0));
+                        habilitarOperaciones(true);
+                        operacionPendienteId = null; // Limpiar
+                    });
+                }
+
+            } catch (org.apache.xmlrpc.client.XmlRpcClientException ex) {
+                if (!Thread.currentThread().isInterrupted()) { // Solo si no fue desconexión manual
+                    if (ex.getMessage().contains("Timeout")) {
+                        javax.swing.SwingUtilities.invokeLater(() -> {
+                            jTextArea1.append("Tiempo acabado - No se recibió respuesta\n");
+                            jTextArea1.append("Pero el servidor pudo haber calculado el resultado\n");
+                            jLabel7.setText("Timeout");
+                            jLabel7.setForeground(java.awt.Color.ORANGE);
+                        });
+                    } else {
+                        javax.swing.SwingUtilities.invokeLater(() -> {
+                            jTextArea1.append("Error: " + ex.getMessage() + "\n");
+                            jLabel7.setText("Error");
+                            jLabel7.setForeground(java.awt.Color.RED);
+                        });
+                    }
                     habilitarOperaciones(true);
-                });
+                }
+                
             } catch (Exception ex) {
-                // Aquí capturamos la excepción cuando el servidor se apaga
-                javax.swing.SwingUtilities.invokeLater(() -> {
-                    jTextArea1.append("Error: fallo de comunicación con el servidor: " + ex.getClass().getSimpleName() + " - " + ex.getMessage() + "\n");
-                    jTextArea1.append("No se encontró el servidor o se interrumpió la conexión.\n");
-                    jLabel7.setText("Desconectado");
-                    jLabel7.setForeground(java.awt.Color.RED);
-                    habilitarOperaciones(false);
-                    // iniciar reintento automático para que se conecte solo
-                    intentarReconexionAutomatica();
-                });
+                if (!Thread.currentThread().isInterrupted()) {
+                    javax.swing.SwingUtilities.invokeLater(() -> {
+                        jTextArea1.append("Error inesperado: " + ex.getMessage() + "\n");
+                        jLabel7.setText("Error");
+                        jLabel7.setForeground(java.awt.Color.RED);
+                        habilitarOperaciones(true);
+                    });
+                }
             }
-        }).start();
+        });
+        
+        hiloOperacionActual.start();
 
     } catch (NumberFormatException e) {
-        jTextArea1.append("Error: Ingrese numeros válidos\n");
+        jTextArea1.append("Error: Ingrese números válidos\n");
         habilitarOperaciones(true);
-    }
-        
+    } 
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
@@ -275,22 +334,29 @@ public class clientevista extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-         intentandoReconectar = false; 
-        try {
-            if (client != null) {
-                Object[] params = new Object[]{"Cliente desconectado"};
-                client.execute("Mensajes.recibir", params);
-            }
-        } catch (Exception e) {
-            // Ignorar errores
-        }
-        
-        client = null;
-        jLabel7.setText("Desconectado");
-        jLabel7.setForeground(java.awt.Color.RED);
-        habilitarOperaciones(false);
-        jTextArea1.append("Desconectado del servidor\n");
+          // Interrumpir operación en curso antes de enviarla
+    if (hiloOperacionActual != null && hiloOperacionActual.isAlive()) {
+        hiloOperacionActual.interrupt();
+        jTextArea1.append("Interrumpiendo operación en curso...\n");
+        jTextArea1.append("El servidor puede haber calculado el resultado\n");
+        jTextArea1.append("Usa 'Limpiar/Recuperar' para obtener el resultado perdido\n");
+    }
     
+    intentandoReconectar = false; 
+    try {
+        if (client != null) {
+            Object[] params = new Object[]{"Cliente desconectado"};
+            client.execute("Mensajes.recibir", params);
+        }
+    } catch (Exception e) {
+        // Ignoraramos losa errores
+    }
+    
+    client = null;
+    jLabel7.setText("Desconectado");
+    jLabel7.setForeground(java.awt.Color.RED);
+    habilitarOperaciones(false);
+    jTextArea1.append("Desconectado del servidor\n");
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
@@ -327,6 +393,9 @@ public class clientevista extends javax.swing.JFrame {
                     habilitarOperaciones(true);
                 });
             } catch (Exception ex) {
+                
+                
+                
                  // Aquí capturamos la excepción cuando el servidor se apaga
                 javax.swing.SwingUtilities.invokeLater(() -> {
                     jTextArea1.append("Error: fallo de comunicación con el servidor: " 
@@ -425,7 +494,7 @@ public class clientevista extends javax.swing.JFrame {
 
                 Object[] params = new Object[]{num1, num2};
                 Double resultado = (Double) clienteTemporal.execute("MiServidorRPC_Divicion.divicion", params);
-                
+
                 javax.swing.SwingUtilities.invokeLater(() -> {
                     jTextArea1.append("División: " + num1 + " / " + num2 + " = " + resultado + "\n");
                     jLabel7.setText("Conectado");
@@ -453,14 +522,69 @@ public class clientevista extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton6ActionPerformed
 
     private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
+ // Si hay operación pendiente las recuperar. Sino, limpiar campos.
+    if (operacionPendienteId != null) {
+        recuperarResultadoPerdido();
+    } else {
+        jTextField1.setText("");
+        jTextField2.setText("");
+        jTextField1.requestFocus();
+        jTextArea1.append("Campos limpiados\n");
+    }
+}
 
-    jTextField1.setText("");
-    jTextField2.setText("");
-    jTextField1.requestFocus();
+private void recuperarResultadoPerdido() {
+    if (operacionPendienteId == null) {
+        jTextArea1.append("No hay operaciones pendientes por recuperar\n");
+        return;
+    }
     
-    //jTextArea1.append("Campos limpiados\n");
+    jTextArea1.append("\nIntentando recuperar resultado perdido...\n");
+    
+    new Thread(() -> {
+        try {
+            XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
+            config.setServerURL(new URL("http://localhost:8080/"));
+            config.setConnectionTimeout(3000);
+            config.setReplyTimeout(5000);
+
+            XmlRpcClient clienteTemporal = new XmlRpcClient();
+            clienteTemporal.setConfig(config);
+
+            Object[] params = new Object[]{operacionPendienteId};
+            String resultadoRecuperado = (String) clienteTemporal.execute("MiServidorRPC_Suma.obtenerResultadoNoEnviado", params);
+            
+            if (resultadoRecuperado.startsWith("RECUPERADO_")) {
+                int resultado = Integer.parseInt(resultadoRecuperado.substring(11));
+                javax.swing.SwingUtilities.invokeLater(() -> {
+                    jTextArea1.append("RESULTADO RECUPERADO = " + resultado + "\n");
+                    jTextArea1.append("El servidor tenía el resultado guardado\n");
+                    jLabel7.setText("Conectado");
+                    jLabel7.setForeground(new java.awt.Color(0, 153, 0));
+                    operacionPendienteId = null; // Limpiar
+                    habilitarOperaciones(true);
+                });
+            } else {
+                javax.swing.SwingUtilities.invokeLater(() -> {
+                    jTextArea1.append("No se pudo recuperar el resultado\n");
+                    operacionPendienteId = null;
+                    habilitarOperaciones(true);
+                });
+            }
+            
+        } catch (Exception e) {
+            javax.swing.SwingUtilities.invokeLater(() -> {
+                jTextArea1.append("Error al recuperar: " + e.getMessage() + "\n");
+                habilitarOperaciones(true);
+            });
+        }
+    }).start();
 
     }//GEN-LAST:event_jButton7ActionPerformed
+
+    private void jButton9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton9ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton9ActionPerformed
 
     
     // Habilitar/deshabilitar operaciones
@@ -469,7 +593,7 @@ public class clientevista extends javax.swing.JFrame {
         jButton4.setEnabled(habilitar);
         jButton5.setEnabled(habilitar);
         jButton6.setEnabled(habilitar);
-        jButton2.setEnabled(habilitar);
+        
         jButton1.setEnabled(!habilitar);
     }
 
@@ -536,6 +660,8 @@ public class clientevista extends javax.swing.JFrame {
     private javax.swing.JButton jButton5;
     private javax.swing.JButton jButton6;
     private javax.swing.JButton jButton7;
+    private javax.swing.JButton jButton8;
+    private javax.swing.JButton jButton9;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;

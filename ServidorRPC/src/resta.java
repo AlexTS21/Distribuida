@@ -1,7 +1,7 @@
 
 public class resta {
       public int resta(int a, int b) {
-        System.out.println("Llamada para restar dos datos (" + a + ", " + b + ")");
+        System.out.println("Llamada para sumar dos datos (" + a + ", " + b + ")");
 
         // servidor ocupado
         try {
@@ -10,7 +10,7 @@ public class resta {
             Thread.currentThread().interrupt();
         }
 
-        System.out.println("Resta completada: " + a + " + " + b + " = " + (a - b));
+        System.out.println("resta completada: " + a + " + " + b + " = " + (a + b));
         return a - b;
     }
 }
