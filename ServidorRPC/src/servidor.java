@@ -21,7 +21,7 @@ public class servidor {
 
             PropertyHandlerMapping phm = new PropertyHandlerMapping();
             phm.addHandler("MiServidorRPC_Suma", suma.class);
-            phm.addHandler("MiServidorRPC_Rest", resta.class);
+            phm.addHandler("MiServidorRPC_Resta", resta.class);
             phm.addHandler("MiServidorRPC_Multiplicacion", multiplicacion.class);
             phm.addHandler("MiServidorRPC_Divicion", divicion.class);
             phm.addHandler("Mensajes", Mensajes.class);
