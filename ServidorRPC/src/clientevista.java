@@ -296,7 +296,7 @@ public class clientevista extends javax.swing.JFrame {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
     try {
             XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
-            config.setServerURL(new URL("http://localhost:8080/"));
+            config.setServerURL(new URL("http://10.195.105.19:8080"));
             config.setConnectionTimeout(3000);
 
             client = new XmlRpcClient();
