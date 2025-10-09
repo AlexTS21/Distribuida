@@ -1,6 +1,9 @@
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import javax.swing.JTextArea;
 import javax.swing.SwingWorker;
 
 
@@ -187,28 +190,43 @@ public class clientevista extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    // Método para registrar un cliente nuevo y su JTextArea
+    private void registrarCliente(String nombreCliente, JTextArea textArea) {
+        areasClientes.put(nombreCliente, textArea);
+    }
+    
+    // campo: (puedes mantener el Map si lo usas para otras cosas)
+    private Map<String, JTextArea> areasClientes = new HashMap<>();
+
+    // Inicia un cliente particular en el índice dado y usa directamente el areaTexto
     private void iniciarCliente(int indice, String nombre, javax.swing.JTextArea areaTexto) {
+        // capturamos en variables finales para el inner class
+        final String nombreLocal = nombre;
+        final JTextArea areaLocal = areaTexto;
+
         workers[indice] = new SwingWorker<Void, String>() {
-            
+
             private int contador = 0;
-            
+
             @Override
             protected Void doInBackground() {
                 try {
-                    while (corriendo) {
-                        Object[] params = new Object[]{nombre};
+                    while (corriendo) { // <-- si quieres independiente, usa un boolean[] corriendoPorCliente
+                        Object[] params = new Object[]{nombreLocal};
                         String respuesta = (String) clientes[indice].execute("Mensajes.recibir", params);
 
                         contador++;
-                        
                         publish(respuesta);
 
-                        if (respuesta.contains("Servidor cerrado")) {
-                            corriendo = false;
+                        if (respuesta != null && respuesta.contains("Servidor cerrado")) {
+                            // Si quieres que sólo este worker pare, descomenta la línea siguiente e implementa corriendoPorCliente[indice]
+                            // corriendoPorCliente[indice] = false;
+                            corriendo = false; // <-- actualmente detiene todos
                             break;
                         }
 
-                        //Thread.sleep(500 + (int) (Math.random() * 1000));
+                        // evita bucle demasiado agresivo si te interesa
+                        // Thread.sleep(200);
                     }
                 } catch (Exception e) {
                     publish("Error: " + e.getMessage());
@@ -219,28 +237,41 @@ public class clientevista extends javax.swing.JFrame {
             @Override
             protected void process(java.util.List<String> mensajes) {
                 for (String msg : mensajes) {
-                    areaTexto.append(contador + " - " +msg + "\n");
-                    TextServidor1.append("Server - "+msg + "\n");
-                    
+                    // siempre mostrar en el panel de servidor
+                    TextServidor1.append("Servidor - " + msg + "\n");
+
+                    // usar directamente el JTextArea del cliente
+                    if (areaLocal != null) {
+                        areaLocal.append(msg + "\n");
+                    } else {
+                        TextServidor1.append("⚠ No hay área local para " + nombreLocal + "\n");
+                    }
                 }
             }
 
             @Override
             protected void done() {
-                areaTexto.append("Cliente detenido.\n");
+                if (areaLocal != null) areaLocal.append("Cliente detenido.\n");
             }
         };
         workers[indice].execute();
     }
+
     
     private void ConectarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ConectarActionPerformed
-    try {
-            XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
-            config.setServerURL(new URL("http://localhost:8081"));
-            config.setConnectionTimeout(3000);
+        try {
+            // Registrar las áreas ANTES de iniciar workers
+            registrarCliente("Cliente 1", TextCliente1);
+            registrarCliente("Cliente 2", TextCliente2);
+            registrarCliente("Cliente 3", TextCliente3);
+            registrarCliente("Cliente 4", TextCliente4);
 
             // Crear 4 clientes independientes
             for (int i = 0; i < 4; i++) {
+                XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
+                config.setServerURL(new URL("http://localhost:8081"));
+                config.setConnectionTimeout(3000);
+
                 clientes[i] = new XmlRpcClient();
                 clientes[i].setConfig(config);
             }
@@ -249,7 +280,7 @@ public class clientevista extends javax.swing.JFrame {
             EtiquetaEstado.setText("Conectado");
             EtiquetaEstado.setForeground(new java.awt.Color(0, 153, 0));
 
-            // Iniciar los 4 hilos de envío continuo
+            // Iniciar los 4 hilos de envío continuo (AHORA ya están registradas las áreas)
             iniciarCliente(0, "Cliente 1", TextCliente1);
             iniciarCliente(1, "Cliente 2", TextCliente2);
             iniciarCliente(2, "Cliente 3", TextCliente3);
@@ -261,14 +292,10 @@ public class clientevista extends javax.swing.JFrame {
                     "Error",
                     javax.swing.JOptionPane.ERROR_MESSAGE);
             TextCliente1.append("Error de conexión\n");
-            
             TextCliente2.append("Error de conexión\n");
             TextCliente3.append("Error de conexión\n");
             TextCliente4.append("Error de conexión\n");
         }
-    
-                        
-    
     }//GEN-LAST:event_ConectarActionPerformed
 
     private void DesconectarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_DesconectarActionPerformed

@@ -2,6 +2,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.xmlrpc.server.PropertyHandlerMapping; // Registra mapeos entre nombres de servicios (strings) y clases Java
 import org.apache.xmlrpc.server.XmlRpcServer; // Clase principal que maneja la lógica del servidor RPC basado en XML
 import org.apache.xmlrpc.webserver.WebServer; // Servidor web embebido simple que puede escuchar peticiones HTTP en un puerto específico
+import java.util.*;
+import java.util.ArrayList;
 
 public class servidor {
     
@@ -12,8 +14,16 @@ public class servidor {
     private static final int MAX_PETICIONES = 100;
     private static WebServer webServer;
     
+    
     public static class Mensajes {
-        public String recibir(String mensaje) {
+        private static final ReentrantLock lock = new ReentrantLock(true);
+        private static List<String> clientesConectados = new ArrayList<>();
+        private static Random random = new Random();
+        private static String ultimoCliente = "";
+        private static int contadorPeticiones = 0;
+        private static final int MAX_PETICIONES = 100;
+
+        public String recibir(String nombreCliente) {
             lock.lock();
             try {
                 if (contadorPeticiones >= MAX_PETICIONES) {
@@ -22,40 +32,60 @@ public class servidor {
                     return "Servidor cerrado";
                 }
 
-                // Verificar que no sea el mismo cliente que el anterior
-                if (mensaje.equals(ultimoCliente)) {
-                    return "Rechazado: el servidor no puede atender dos veces seguidas al mismo cliente (" + mensaje + ")";
+                // Si el cliente no está registrado, lo agregamos a la lista
+                if (!clientesConectados.contains(nombreCliente)) {
+                    clientesConectados.add(nombreCliente);
+                    System.out.println("Nuevo cliente registrado: " + nombreCliente);
                 }
 
-                // Aceptar al cliente
-                contadorPeticiones++;
-                ultimoCliente = mensaje;
+                // Elegir cliente aleatorio distinto del último
+                String elegido;
+                if (clientesConectados.size() == 1) {
+                    elegido = nombreCliente; // si hay solo uno, no hay más opción
+                } else {
+                    do {
+                        elegido = clientesConectados.get(random.nextInt(clientesConectados.size()));
+                    } while (elegido.equals(ultimoCliente)); // evitar repetir
+                }
 
-                System.out.println("[" + contadorPeticiones + "] Atendiendo al cliente: " + mensaje);
+                
+                // Si el que llamó no fue el elegido, se le rechaza
+                if (!nombreCliente.equals(elegido)) {
+                    System.out.println( "Cliente " + nombreCliente + " en espera..." );
+                    return "Ocupado";
+                }
+
+                // Atender al cliente elegido
+                contadorPeticiones++;
+                ultimoCliente = elegido;
+
+                System.out.println("[" + contadorPeticiones + "] Atendiendo al cliente: " + elegido);
+
                 try {
-                    Thread.sleep(500); // Simular tiempo de atención
+                    Thread.sleep(1000); // Simular tiempo de atención
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
 
-                return "[" + contadorPeticiones + "]"+ " - " + mensaje;
+                return "[" + contadorPeticiones + "] - " + elegido;
             } finally {
                 lock.unlock();
             }
         }
-        public static void detenerServidor() {
-            try {
-                System.out.println("Deteniendo servidor...");
-                webServer.shutdown();
-                System.out.println("Servidor detenido correctamente.");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+    }
+    public static void detenerServidor() {
+        try {
+            System.out.println("Deteniendo servidor...");
+            webServer.shutdown();
+            System.out.println("Servidor detenido correctamente.");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
+    
     public static void main(String[] args) {
         try {
-            int puerto = 8081;
+            int puerto = 8080;
             System.out.println("Iniciando servidor en el puerto " + puerto + "...");
 
             webServer = new WebServer(puerto);
