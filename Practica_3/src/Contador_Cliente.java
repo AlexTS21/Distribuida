@@ -25,11 +25,8 @@ public class Contador_Cliente extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jScrollPane1 = new javax.swing.JScrollPane();
-        TextServidor = new javax.swing.JTextArea();
         jScrollPane2 = new javax.swing.JScrollPane();
         TextCliente = new javax.swing.JTextArea();
-        jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         Conectar = new javax.swing.JButton();
         EtiquetaEstado = new javax.swing.JLabel();
@@ -38,15 +35,9 @@ public class Contador_Cliente extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        TextServidor.setColumns(20);
-        TextServidor.setRows(5);
-        jScrollPane1.setViewportView(TextServidor);
-
         TextCliente.setColumns(20);
         TextCliente.setRows(5);
         jScrollPane2.setViewportView(TextCliente);
-
-        jLabel1.setText("Servidor");
 
         jLabel2.setText("Cliente");
 
@@ -57,9 +48,9 @@ public class Contador_Cliente extends javax.swing.JFrame {
             }
         });
 
-        EtiquetaEstado.setText("jLabel3");
+        EtiquetaEstado.setText("Desconectado");
 
-        Detener.setText("jButton1");
+        Detener.setText("Desconectar");
         Detener.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 DetenerActionPerformed(evt);
@@ -80,51 +71,37 @@ public class Contador_Cliente extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 172, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel1))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel2)
-                                .addGap(0, 0, Short.MAX_VALUE))
-                            .addComponent(jScrollPane2)))
+                        .addComponent(Conectar)
+                        .addGap(18, 18, 18)
+                        .addComponent(Nombre, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(Conectar)
-                                .addGap(49, 49, 49)
-                                .addComponent(Nombre, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(EtiquetaEstado))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(Detener)
-                        .addGap(32, 32, 32)))
-                .addContainerGap())
+                        .addComponent(jLabel2)
+                        .addGap(32, 32, 32)
+                        .addComponent(Detener))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(48, 48, 48)
+                        .addComponent(EtiquetaEstado)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGap(10, 10, 10)
+                .addComponent(EtiquetaEstado)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(10, 10, 10)
-                        .addComponent(EtiquetaEstado)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(Conectar)
-                            .addComponent(Nombre, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(23, 23, 23)
-                        .addComponent(Detener)))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(jLabel2))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 193, Short.MAX_VALUE)
-                    .addComponent(jScrollPane2))
-                .addContainerGap())
+                            .addComponent(Nombre, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(18, 18, 18)
+                        .addComponent(jLabel2))
+                    .addComponent(Detener))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 193, Short.MAX_VALUE)
+                .addGap(12, 12, 12))
         );
 
         pack();
@@ -144,7 +121,7 @@ public class Contador_Cliente extends javax.swing.JFrame {
 
             EtiquetaEstado.setText("Conectado");
             EtiquetaEstado.setForeground(new java.awt.Color(0, 153, 0));
-            TextServidor.append("Conectado al servidor\n");
+            TextCliente.append("Conectado al servidor\n");
 
             // Lanzamos las peticiones en un hilo aparte
             iniciarEnvioContinuo();
@@ -154,13 +131,13 @@ public class Contador_Cliente extends javax.swing.JFrame {
                 "No se pudo conectar al servidor",
                 "Error",
                 javax.swing.JOptionPane.ERROR_MESSAGE);
-            TextServidor.append("Error de conexión\n");
+            TextCliente.append("Error de conexión\n");
         }
     }//GEN-LAST:event_ConectarActionPerformed
 
     private void DetenerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_DetenerActionPerformed
         corriendo = false;
-        TextServidor.append("Desconectando cliente...\n");        // TODO add your handling code here:
+        TextCliente.append("Desconectando cliente...\n");        // TODO add your handling code here:
     }//GEN-LAST:event_DetenerActionPerformed
 
     private void NombreActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_NombreActionPerformed
@@ -201,14 +178,13 @@ public class Contador_Cliente extends javax.swing.JFrame {
             @Override
             protected void process(java.util.List<String> mensajes) {
                 for (String msg : mensajes) {
-                    TextServidor.append("Servidor - " + msg + "\n");
                     TextCliente.append(contador +" - "+ msg + "\n");
                 }
             }
 
             @Override
             protected void done() {
-                TextServidor.append("Cliente detenido.\n");
+                TextCliente.append("Cliente detenido.\n");
                 EtiquetaEstado.setText("Desconectado");
                 EtiquetaEstado.setForeground(java.awt.Color.RED);
             }
@@ -235,10 +211,7 @@ public class Contador_Cliente extends javax.swing.JFrame {
     private javax.swing.JLabel EtiquetaEstado;
     private javax.swing.JTextField Nombre;
     private javax.swing.JTextArea TextCliente;
-    private javax.swing.JTextArea TextServidor;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     // End of variables declaration//GEN-END:variables
 }
