@@ -7,6 +7,8 @@ import javax.swing.SwingWorker;
 
 public class Contador_Cliente extends javax.swing.JFrame {
     
+    private int contador = 0;
+    
      private XmlRpcClient client;
     private boolean intentandoReconectar = false;
      private String operacionPendienteId = null; // Para recuperación
@@ -153,7 +155,7 @@ public class Contador_Cliente extends javax.swing.JFrame {
     private void iniciarEnvioContinuo() {
         SwingWorker<Void, String> worker = new SwingWorker<>() {
             
-            private int contador = 0;
+            
             
             @Override
             protected Void doInBackground() {
