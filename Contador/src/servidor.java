@@ -47,6 +47,16 @@ public class servidor {
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
+                    // Hilo que detiene el servidor después de cierto tiempo
+                    new Thread(() -> {
+                        try {
+                            Thread.sleep(20000);
+                            System.out.println("⏰ Tiempo máximo alcanzado 2000 segundos).");
+                            detenerServidor();
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                    }).start();
                     return "Esperando";// si hay solo uno, no hay más opción
                 } else {
                     do {
@@ -58,6 +68,11 @@ public class servidor {
                 // Si el que llamó no fue el elegido, se le rechaza
                 if (!nombreCliente.equals(elegido)) {
                     System.out.println( "Cliente " + nombreCliente + " en espera..." );
+                    try {
+                        Thread.sleep(1000); // Simular tiempo de atención
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
                     return "Ocupado";
                 }
 
