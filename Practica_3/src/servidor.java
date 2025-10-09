@@ -40,8 +40,14 @@ public class servidor {
 
                 // Elegir cliente aleatorio distinto del último
                 String elegido;
-                if (clientesConectados.size() == 1) {
-                    elegido = nombreCliente; // si hay solo uno, no hay más opción
+                if (clientesConectados.size() < 2) {
+                    System.out.print("Esperando clientes"+clientesConectados.size()+" clientes conectados \n");
+                    try {
+                        Thread.sleep(1000); // Simular tiempo de atención
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                    return "Esperando";// si hay solo uno, no hay más opción
                 } else {
                     do {
                         elegido = clientesConectados.get(random.nextInt(clientesConectados.size()));

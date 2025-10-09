@@ -32,6 +32,7 @@ public class Contador_Cliente extends javax.swing.JFrame {
         EtiquetaEstado = new javax.swing.JLabel();
         Detener = new javax.swing.JButton();
         Nombre = new javax.swing.JTextField();
+        jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -57,12 +58,14 @@ public class Contador_Cliente extends javax.swing.JFrame {
             }
         });
 
-        Nombre.setText("Nombre...");
+        Nombre.setColumns(5);
         Nombre.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 NombreActionPerformed(evt);
             }
         });
+
+        jLabel1.setText("nombre");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -73,23 +76,26 @@ public class Contador_Cliente extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 172, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(Conectar)
-                        .addGap(18, 18, 18)
-                        .addComponent(Nombre, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel2)
                         .addGap(32, 32, 32)
                         .addComponent(Detener))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(48, 48, 48)
-                        .addComponent(EtiquetaEstado)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(EtiquetaEstado)
+                            .addComponent(Conectar))
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(Nombre, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel1))))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(10, 10, 10)
-                .addComponent(EtiquetaEstado)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(EtiquetaEstado)
+                    .addComponent(jLabel1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
@@ -155,14 +161,13 @@ public class Contador_Cliente extends javax.swing.JFrame {
                     while (corriendo) {
                         Object[] params = new Object[]{nombreCliente};
                         String respuesta = (String) client.execute("Mensajes.recibir", params);
-                        if (!respuesta.contains("Ocupado")){
+                        if (!respuesta.contains("Ocupado") && !respuesta.contains("Esperando")){
                         
                             contador++;
 
                             publish(respuesta);
 
                         }
-
                         if (respuesta.contains("Servidor cerrado")) {
                             corriendo = false;
                             break;
@@ -211,6 +216,7 @@ public class Contador_Cliente extends javax.swing.JFrame {
     private javax.swing.JLabel EtiquetaEstado;
     private javax.swing.JTextField Nombre;
     private javax.swing.JTextArea TextCliente;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane2;
     // End of variables declaration//GEN-END:variables
