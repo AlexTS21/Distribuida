@@ -8,6 +8,8 @@ public class servidor {
 
     private static WebServer webServer;
     private static volatile boolean servidorDetenido = false; // NUEVO
+    private static final int MAX_PETICIONES = 20;
+
 
     public static class Mensajes {
          
@@ -16,8 +18,7 @@ public class servidor {
         private static Random random = new Random();
         private static String ultimoCliente = "";
         private static int contadorPeticiones = 0;
-        private static final int MAX_PETICIONES = 20;
-
+        
         // Variables para control del temporizador
         private static Timer timerCierre = null;
         private static final int TIEMPO_MAXIMO_MS = 20000; // 20 segundos
@@ -27,9 +28,15 @@ public class servidor {
             try {
                 // Si alcanzó el máximo de peticiones, cerrar servidor
                 if (contadorPeticiones >= MAX_PETICIONES) {
-                    System.out.println("Servidor alcanzó las 100 peticiones. Cerrando...");
+                    //System.out.println("Servidor alcanzó las 100 peticiones. Cerrando...");
                     
-                    detenerServidor();
+                    try {
+                        Thread.sleep(500); // Simular tiempo de atención
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                    detenerServidor(nombreCliente);
+                    //System.out.println("Cliente que hace la ultima peticion: " + nombreCliente);
                     return "Servidor cerrado";
                 }
 
@@ -44,17 +51,18 @@ public class servidor {
                 if (clientesConectados.size() < 2) {
                     System.out.print("Esperando clientes (" + clientesConectados.size() + " conectados)\n");
                     try {
-                        Thread.sleep(1000); // Simular tiempo de atención
+                        Thread.sleep(500); // Simular tiempo de atención
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
+                    manejarTemporizador();
                     return "Esperando";
                 }
 
                 // Elegir cliente aleatorio distinto del último
                 String elegido;
                 do {
-                    elegido = clientesConectados.get(random.nextInt(clientesConectados.size()));
+                    elegido = clientesConectados.get(random.nextInt(clientesConectados.size()));                 
                 } while (elegido.equals(ultimoCliente));
 
                 
@@ -63,7 +71,7 @@ public class servidor {
                 if (!nombreCliente.equals(elegido)) {
                     System.out.println("Cliente " + nombreCliente + " en espera...");
                     try {
-                        Thread.sleep(1000); // Simular tiempo de atención
+                        Thread.sleep(500); // Simular tiempo de atención
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
@@ -76,7 +84,7 @@ public class servidor {
                 System.out.println("[" + contadorPeticiones + "] Atendiendo al cliente: " + elegido);
 
                 try {
-                    Thread.sleep(1000); // Simular tiempo de atención
+                    Thread.sleep(500); // Simular tiempo de atención
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
@@ -99,7 +107,7 @@ public class servidor {
                             try {
                                 if (clientesConectados.size() < 2) {
                                     System.out.println("⏰ Tiempo máximo alcanzado (" + TIEMPO_MAXIMO_MS / 1000 + " segundos).");
-                                    detenerServidor();
+                                    detenerServidor("No habia clientes suficientes");
                                 } else {
                                     System.out.println("Temporizador cancelado automáticamente (ya hay 2 clientes).");
                                 }
@@ -121,7 +129,7 @@ public class servidor {
         }
     }
 
-    public static synchronized void detenerServidor() {
+    public static void detenerServidor(String nombreCliente) {
         if (servidorDetenido) return; // Si ya se detuvo, no hacer nada
 
         try {
@@ -129,6 +137,7 @@ public class servidor {
             System.out.println("Deteniendo servidor...");
             webServer.shutdown();
             System.out.println("Servidor detenido correctamente.");
+            System.out.println("Peticion numero ; "+ MAX_PETICIONES+1+ " hecho por: " + nombreCliente);
         } catch (Exception e) {
             e.printStackTrace();
         }
