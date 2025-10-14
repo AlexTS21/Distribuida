@@ -45,7 +45,7 @@ public class ClockSyncClientGUI extends JFrame {
         this.clientName = name;
         setTitle("Cliente RMI: " + clientName); 
         initComponents();
-        updateClientTimeDisplay();
+        actualizaTiempoCliente();
         this.setVisible(true);
     }
     
@@ -56,7 +56,7 @@ public class ClockSyncClientGUI extends JFrame {
     }
     
     // Convierte milisegundos a segundos del día
-    private double millisToSecondsOfDay(long millis) {
+    private double miliAsegundos(long millis) {
         LocalTime time = LocalTime.ofInstant(
             java.time.Instant.ofEpochMilli(millis), 
             java.time.ZoneId.systemDefault()
@@ -65,7 +65,7 @@ public class ClockSyncClientGUI extends JFrame {
     }
     
     // Convierte segundos del día a formato HH:MM:SS.ss
-    private String secondsOfDayToHHMMSS(double totalSeconds) {
+    private String segundosDelDiaAHHMMSS(double totalSeconds) {
         int hours = (int) (totalSeconds / 3600);
         int minutes = (int) ((totalSeconds % 3600) / 60);
         double seconds = totalSeconds % 60;
@@ -81,13 +81,11 @@ public class ClockSyncClientGUI extends JFrame {
         return time.format(DateTimeFormatter.ofPattern("HH:mm:ss.SSS"));
     }
     
-    private void updateClientTimeDisplay() {
+    private void actualizaTiempoCliente() {
         new Timer(100, (ActionEvent e) -> {
             timeLabel.setText("Hora Local: " + formatMillisToHHMMSS(getClientCurrentTimeMillis()));
         }).start();
     }
-    
-    // --- Lógica RMI y Sincronización ---
     
     private void connectToServer() {
         try {
@@ -99,14 +97,14 @@ public class ClockSyncClientGUI extends JFrame {
             remoteService.notifyClientConnected(clientName);
             
             statusLabel.setText("Conectado");
-            logArea.append("[" + clientName + "] Conexión RMI exitosa.\n");
+            logArea.append("[" + clientName + "] Conexion RMI exitosa.\n");
             connectButton.setEnabled(false);
             disconnectButton.setEnabled(true);
             sendTimeButton.setEnabled(true);
             
         } catch (Exception e) {
             statusLabel.setText("ERROR");
-            logArea.append("[" + clientName + "] Error de conexión: " + e.getMessage() + "\n");
+            logArea.append("[" + clientName + "] Error de conexion: " + e.getMessage() + "\n");
         }
     }
     
@@ -131,22 +129,22 @@ public class ClockSyncClientGUI extends JFrame {
             try {
                 sendTimeButton.setEnabled(false);
                 statusLabel.setText("Enviando hora...");
-                logArea.append("--------------------------------------------------\n");
+                logArea.append("\n");
                 
                 long timeSent = getClientCurrentTimeMillis(); 
-                double clientTimeSec = millisToSecondsOfDay(timeSent);
+                double clientTimeSec = miliAsegundos(timeSent);
                 
                 // Enviar hora al servidor (sin sincronizar todavía)
                 double serverTimeSec = remoteService.registerClientTime(clientTimeSec, simulatedRTTSeg, clientName);
                 
                 SwingUtilities.invokeLater(() -> {
-                    // Calcular desfase inicial usando RTT/2 (1 segundo)
+                    // Calcular desfase inicial con RTT/2
                     double rttHalf = simulatedRTTSeg / 2.0;
                     double clientTimeWithRTT = clientTimeSec + rttHalf;
                     double drift = clientTimeWithRTT - serverTimeSec;
                     
                     // Mostrar tabla de cálculo
-                    printConversionTable(timeSent, serverTimeSec, drift, rttHalf);
+                    imprimirConversionTabla(timeSent, serverTimeSec, drift, rttHalf);
                     
                     logArea.append(String.format("[%s] Hora enviada: %s (%.2f seg)\n", 
                         clientName, formatMillisToHHMMSS(timeSent), clientTimeSec));
@@ -184,17 +182,15 @@ public class ClockSyncClientGUI extends JFrame {
                         long adjustmentMillis = (long) (adjustmentSec * 1000);
                         clockDrift += adjustmentMillis;
                         
-                        logArea.append("\n============================================\n");
-                        logArea.append(String.format("AJUSTE FINAL: %+.2f segundos\n", adjustmentSec));
-                        logArea.append(String.format("NUEVA HORA SINCRONIZADA: %s\n", 
-                            secondsOfDayToHHMMSS(newTimeSec)));
-                        logArea.append("============================================\n");
+                        logArea.append("\n");
+                        logArea.append(String.format("Ajuste final: %+.2f segundos\n", adjustmentSec));
+                        logArea.append(String.format("Hora sincronizada: %s\n", 
+                            segundosDelDiaAHHMMSS(newTimeSec)));
+                        logArea.append("\n");
                         
                         statusLabel.setText("Sincronizado");
                         driftLabel.setText("Sincronizado correctamente");
                         
-                        // Iniciar polling para recibir actualizaciones
-                        startPollingForUpdates();
                         
                     } else {
                         logArea.append("[" + clientName + "] Esperando que más clientes envíen su hora...\n");
@@ -209,45 +205,10 @@ public class ClockSyncClientGUI extends JFrame {
         }).start();
     }
     
-    // Método para hacer polling y recibir actualizaciones de sincronización
-    private void startPollingForUpdates() {
-        Timer pollingTimer = new Timer(500, null);
-        pollingTimer.addActionListener(e -> {
-            try {
-                Map<String, Double> update = remoteService.checkForSyncUpdate(clientName);
-                
-                if (update.containsKey("adjustment")) {
-                    double adjustmentSec = update.get("adjustment");
-                    double newTimeSec = update.get("newTime");
-                    
-                    // Aplicar ajuste
-                    long adjustmentMillis = (long) (adjustmentSec * 1000);
-                    clockDrift += adjustmentMillis;
-                    
-                    SwingUtilities.invokeLater(() -> {
-                        logArea.append("\n============================================\n");
-                        logArea.append(String.format("AJUSTE FINAL: %+.2f segundos\n", adjustmentSec));
-                        logArea.append(String.format("NUEVA HORA SINCRONIZADA: %s\n", 
-                            secondsOfDayToHHMMSS(newTimeSec)));
-                        logArea.append("============================================\n");
-                        
-                        statusLabel.setText("Sincronizado");
-                        driftLabel.setText("Sincronizado correctamente");
-                        synchronizeButton.setEnabled(false);
-                    });
-                    
-                    pollingTimer.stop();
-                }
-            } catch (Exception ex) {
-                // Ignorar errores de polling
-            }
-        });
-        pollingTimer.start();
-    }
     
     private void handleError(Exception e, String phase) {
         SwingUtilities.invokeLater(() -> {
-            statusLabel.setText("ERROR RMI");
+            statusLabel.setText("Error rmi");
             logArea.append("[" + clientName + "] Error en " + phase + ": " + e.getMessage() + "\n");
             sendTimeButton.setEnabled(true);
             synchronizeButton.setEnabled(timeRegistered);
@@ -255,17 +216,17 @@ public class ClockSyncClientGUI extends JFrame {
         e.printStackTrace();
     }
 
-    private void printConversionTable(long initialTime, double serverTimeSec, double drift, double rttHalf) {
+    private void imprimirConversionTabla(long initialTime, double serverTimeSec, double drift, double rttHalf) {
         tableModel.setRowCount(0); 
 
-        double clientTimeSec = millisToSecondsOfDay(initialTime);
-        double clientTimeWithRTT = clientTimeSec + rttHalf;
+        double tiempoClienteSec = miliAsegundos(initialTime);
+        double tiempoClienteRTT = tiempoClienteSec + rttHalf;
         
         // Fila 1: Reloj del cliente
         tableModel.addRow(new Object[]{
             "Hora del Cliente", 
             formatMillisToHHMMSS(initialTime),
-            String.format("%.2f", clientTimeSec)
+            String.format("%.2f", tiempoClienteSec)
         });
                           
         // Fila 2: Compensación RTT
@@ -278,14 +239,14 @@ public class ClockSyncClientGUI extends JFrame {
         // Fila 3: Tiempo con RTT
         tableModel.addRow(new Object[]{
             "Cliente + RTT/2", 
-            secondsOfDayToHHMMSS(clientTimeWithRTT),
-            String.format("%.2f", clientTimeWithRTT)
+            segundosDelDiaAHHMMSS(tiempoClienteRTT),
+            String.format("%.2f", tiempoClienteRTT)
         });
         
         // Fila 4: Hora del servidor
         tableModel.addRow(new Object[]{
             "Hora del Servidor", 
-            secondsOfDayToHHMMSS(serverTimeSec),
+            segundosDelDiaAHHMMSS(serverTimeSec),
             String.format("%.2f", serverTimeSec)
         });
         
@@ -323,7 +284,7 @@ public class ClockSyncClientGUI extends JFrame {
         disconnectButton = new JButton("Desconectar y Salir");
 
         // Configuración de la tabla
-        String[] columnNames = {"CONCEPTO", "HORA (HH:MM:SS.ss)", "TOTAL (SEG.)"};
+        String[] columnNames = {"Concepto", "Hora (HH:MM:SS.ss)", "Total (SEG.)"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
@@ -370,7 +331,7 @@ public class ClockSyncClientGUI extends JFrame {
         
         // Fila 5: Título de la Tabla
         gbc.gridy = 5; gbc.gridx = 0; gbc.gridwidth = 3; gbc.anchor = GridBagConstraints.WEST;
-        add(new JLabel("--- TABLA DE CÁLCULOS DEL CLIENTE ---"), gbc);
+        add(new JLabel(" TABLA DE CALCULOS DEL CLIENTE"), gbc);
         
         // Fila 6: JTable
         gbc.gridy = 6; gbc.gridx = 0; gbc.gridwidth = 3; gbc.fill = GridBagConstraints.BOTH;
@@ -379,13 +340,13 @@ public class ClockSyncClientGUI extends JFrame {
         
         // Fila 7: Título del Log
         gbc.gridy = 7; gbc.gridx = 0; gbc.gridwidth = 3; gbc.weighty = 0; gbc.anchor = GridBagConstraints.WEST;
-        add(new JLabel("--- Registro de Eventos (Log) ---"), gbc);
+        add(new JLabel(" Registro de Eventos log "), gbc);
         
         // Fila 8: Log Area
         gbc.gridy = 8; gbc.gridx = 0; gbc.gridwidth = 3; gbc.weighty = 0.7;
         add(logScrollPane, gbc); 
         
-        // Fila 9: Botón Sincronizar (DEBAJO DEL LOG)
+        // Fila 9: Botón Sincronizar
         gbc.gridy = 9; gbc.gridx = 0; gbc.gridwidth = 3; gbc.weighty = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         add(synchronizeButton, gbc);
@@ -405,7 +366,7 @@ public class ClockSyncClientGUI extends JFrame {
         SwingUtilities.invokeLater(() -> {
             Random rand = new Random();
             
-            int randomId = rand.nextInt(30) + 1; 
+            int randomId = rand.nextInt(10) + 1; 
             String clientName = "Cliente " + randomId; 
             
             new ClockSyncClientGUI(clientName);
