@@ -35,11 +35,13 @@ public class ClockSyncClientGUI extends JFrame {
     private JTextArea logArea;              
     private JButton connectButton;
     private JButton sendTimeButton;
-    private JButton synchronizeButton;
+    // Eliminado: private JButton synchronizeButton;
     private JButton disconnectButton; 
     private JLabel statusLabel;
     private JLabel timeLabel;
     private JLabel driftLabel;
+    
+    private Timer syncCheckTimer; // NUEVO: Timer para checar actualizaciones
 
     public ClockSyncClientGUI(String name) {
         this.clientName = name;
@@ -102,6 +104,9 @@ public class ClockSyncClientGUI extends JFrame {
             disconnectButton.setEnabled(true);
             sendTimeButton.setEnabled(true);
             
+            // Iniciar el chequeo periódico de sincronización
+            startSyncCheckTimer();
+            
         } catch (Exception e) {
             statusLabel.setText("ERROR");
             logArea.append("[" + clientName + "] Error de conexion: " + e.getMessage() + "\n");
@@ -119,11 +124,61 @@ public class ClockSyncClientGUI extends JFrame {
             remoteService = null; 
         }
         
+        if (syncCheckTimer != null) {
+            syncCheckTimer.stop();
+        }
+        
         statusLabel.setText("Desconectado");
         dispose();
     }
     
-    // NUEVO: Solo enviar hora al servidor
+    // NUEVO: Timer para checar si hay actualización pendiente del servidor
+    private void startSyncCheckTimer() {
+        if (syncCheckTimer != null) {
+            syncCheckTimer.stop();
+        }
+        
+        // Chequea cada 3 segundos
+        syncCheckTimer = new Timer(3000, e -> checkForSyncUpdate());
+        syncCheckTimer.start();
+        logArea.append("[" + clientName + "] Iniciando chequeo de sincronización (polling).\n");
+    }
+    
+    // NUEVO: Método para recibir el ajuste desde el servidor
+    private void checkForSyncUpdate() {
+        new Thread(() -> {
+            if (remoteService == null) return;
+            try {
+                // Llama al método RMI
+                Map<String, Double> result = remoteService.checkForSyncUpdate(clientName);
+                
+                if (result != null && result.containsKey("adjustment")) {
+                    SwingUtilities.invokeLater(() -> {
+                        double adjustmentSec = result.get("adjustment");
+                        double newTimeSec = result.get("newTime");
+                        
+                        // Aplicar ajuste
+                        long adjustmentMillis = (long) (adjustmentSec * 1000);
+                        clockDrift += adjustmentMillis;
+                        
+                        logArea.append("\n*** ACTUALIZACIÓN RECIBIDA DEL SERVIDOR ***\n");
+                        logArea.append(String.format("Ajuste aplicado: %+.2f segundos\n", adjustmentSec));
+                        logArea.append(String.format("Nueva hora sincronizada: %s\n", 
+                            segundosDelDiaAHHMMSS(newTimeSec)));
+                        logArea.append("********************************************\n");
+                        
+                        statusLabel.setText("Sincronizado");
+                        driftLabel.setText(String.format("Último Ajuste: %+.2f seg", adjustmentSec));
+                    });
+                }
+            } catch (Exception e) {
+                // Ignorar si es error temporal de RMI
+                // System.err.println("[" + clientName + "] Error en polling: " + e.getMessage());
+            }
+        }).start();
+    }
+    
+    // Solo enviar hora al servidor
     private void sendTimeToServer() {
         new Thread(() -> {
             try {
@@ -154,7 +209,7 @@ public class ClockSyncClientGUI extends JFrame {
                     driftLabel.setText(String.format("Desfase Inicial: %.2f seg", drift));
                     statusLabel.setText("Hora Registrada");
                     timeRegistered = true;
-                    synchronizeButton.setEnabled(true);
+                    // synchronizeButton.setEnabled(true); // Ya no existe
                 });
 
             } catch (Exception e) {
@@ -163,55 +218,11 @@ public class ClockSyncClientGUI extends JFrame {
         }).start();
     }
     
-    // NUEVO: Sincronizar con todos los clientes conectados
-    private void synchronizeClients() {
-        new Thread(() -> {
-            try {
-                synchronizeButton.setEnabled(false);
-                statusLabel.setText("Sincronizando...");
-                
-                // Solicitar sincronización global
-                Map<String, Double> result = remoteService.synchronizeAllClients(clientName);
-                
-                SwingUtilities.invokeLater(() -> {
-                    if (result.containsKey("adjustment")) {
-                        double adjustmentSec = result.get("adjustment");
-                        double newTimeSec = result.get("newTime");
-                        
-                        // Aplicar ajuste
-                        long adjustmentMillis = (long) (adjustmentSec * 1000);
-                        clockDrift += adjustmentMillis;
-                        
-                        logArea.append("\n");
-                        logArea.append(String.format("Ajuste final: %+.2f segundos\n", adjustmentSec));
-                        logArea.append(String.format("Hora sincronizada: %s\n", 
-                            segundosDelDiaAHHMMSS(newTimeSec)));
-                        logArea.append("\n");
-                        
-                        statusLabel.setText("Sincronizado");
-                        driftLabel.setText("Sincronizado correctamente");
-                        
-                        
-                    } else {
-                        logArea.append("[" + clientName + "] Esperando que más clientes envíen su hora...\n");
-                        statusLabel.setText("Esperando otros clientes");
-                        synchronizeButton.setEnabled(true);
-                    }
-                });
-
-            } catch (Exception e) {
-                handleError(e, "sincronización");
-            }
-        }).start();
-    }
-    
-    
     private void handleError(Exception e, String phase) {
         SwingUtilities.invokeLater(() -> {
-            statusLabel.setText("Error rmi");
+            statusLabel.setText("Error RMI");
             logArea.append("[" + clientName + "] Error en " + phase + ": " + e.getMessage() + "\n");
             sendTimeButton.setEnabled(true);
-            synchronizeButton.setEnabled(timeRegistered);
         });
         e.printStackTrace();
     }
@@ -280,7 +291,7 @@ public class ClockSyncClientGUI extends JFrame {
         driftLabel = new JLabel("Desfase: No calculado");
         connectButton = new JButton("Conectar al Servidor"); 
         sendTimeButton = new JButton("Enviar Hora"); 
-        synchronizeButton = new JButton("Sincronizar");
+        // Eliminado: synchronizeButton
         disconnectButton = new JButton("Desconectar y Salir");
 
         // Configuración de la tabla
@@ -340,23 +351,16 @@ public class ClockSyncClientGUI extends JFrame {
         
         // Fila 7: Título del Log
         gbc.gridy = 7; gbc.gridx = 0; gbc.gridwidth = 3; gbc.weighty = 0; gbc.anchor = GridBagConstraints.WEST;
-        add(new JLabel(" Registro de Eventos log "), gbc);
+        add(new JLabel(" Registro de Eventos log (Esperando ajuste del Servidor) "), gbc);
         
         // Fila 8: Log Area
         gbc.gridy = 8; gbc.gridx = 0; gbc.gridwidth = 3; gbc.weighty = 0.7;
         add(logScrollPane, gbc); 
         
-        // Fila 9: Botón Sincronizar
-        gbc.gridy = 9; gbc.gridx = 0; gbc.gridwidth = 3; gbc.weighty = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        add(synchronizeButton, gbc);
-
         // Event Listeners
         connectButton.addActionListener(e -> connectToServer());
         sendTimeButton.addActionListener(e -> sendTimeToServer());
         sendTimeButton.setEnabled(false);
-        synchronizeButton.addActionListener(e -> synchronizeClients());
-        synchronizeButton.setEnabled(false);
         disconnectButton.addActionListener(e -> disconnectClient());
         
         pack();

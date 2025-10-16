@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.HashSet;
 import java.util.Set;
+import javax.swing.JTextArea; // Importar JTextArea
 
 public class ClockSyncServiceImpl extends UnicastRemoteObject implements ClockSyncService {
 
@@ -19,16 +20,27 @@ public class ClockSyncServiceImpl extends UnicastRemoteObject implements ClockSy
     private final Map<String, Double> clientDrifts = new HashMap<>(); // Desfases de cada cliente
     private final Map<String, Map<String, Double>> pendingSyncUpdates = new HashMap<>(); // Actualizaciones pendientes por cliente
     private final double serverCoordinatorTimeSec;
+    private final JTextArea logArea; // Referencia al log de la GUI del Servidor
 
-    public ClockSyncServiceImpl() throws RemoteException {
+    // Modificar el constructor para recibir el JTextArea
+    public ClockSyncServiceImpl(JTextArea logArea) throws RemoteException {
         super();
+        this.logArea = logArea;
         // Hora del servidor
         serverCoordinatorTimeSec = miliAsegundosDeDia(System.currentTimeMillis());
-        System.out.printf(" Hora base del coordinador: %s (%.2f seg)%n", 
-                          segundosDelDiaAHHMMSS(serverCoordinatorTimeSec), serverCoordinatorTimeSec);
+        log(" Hora base del coordinador: " + segundosDelDiaAHHMMSS(serverCoordinatorTimeSec) 
+            + " (" + String.format("%.2f", serverCoordinatorTimeSec) + " seg)");
     }
     
+    // NUEVO: Método para redirigir la salida al JTextArea y la consola
+    private void log(String message) {
+        System.out.println(message);
+        if (logArea != null) {
+            logArea.append(message + "\n");
+        }
+    }
     
+    // Métodos utilitarios (sin cambios)
     private double miliAsegundosDeDia(long millis) {
         LocalTime time = LocalTime.ofInstant(
             java.time.Instant.ofEpochMilli(millis), 
@@ -49,16 +61,15 @@ public class ClockSyncServiceImpl extends UnicastRemoteObject implements ClockSy
     @Override
     public synchronized void notifyClientConnected(String clientName) throws RemoteException {
         connectedClients.add(clientName);
-        System.out.printf(" %s conectado. Total clientes conectados: %d%n", 
-                          clientName, connectedClients.size());
+        log(" " + clientName + " conectado. Total clientes conectados: " + connectedClients.size());
     }
     
     @Override
     public synchronized void notifyClientDisconnected(String clientName) throws RemoteException {
         connectedClients.remove(clientName);
         clientDrifts.remove(clientName);
-        System.out.printf(" %s desconectado. Total clientes conectados: %d%n", 
-                          clientName, connectedClients.size());
+        pendingSyncUpdates.remove(clientName);
+        log(" " + clientName + " desconectado. Total clientes conectados: " + connectedClients.size());
     }
 
     
@@ -74,51 +85,55 @@ public class ClockSyncServiceImpl extends UnicastRemoteObject implements ClockSy
         // Guardar el desfase
         clientDrifts.put(clientName, drift);
         
-        System.out.printf(" %s registro su hora:%n", clientName);
-        System.out.printf("   Cliente: %s (%.2f seg)%n", 
-                          segundosDelDiaAHHMMSS(clientTimeSec), clientTimeSec);
-        System.out.printf("   RTT/2: %.2f seg%n", rttHalf);
-        System.out.printf("   Cliente+RTT/2: %.2f seg%n", clientTimeWithRTT);
-        System.out.printf("   Desfase calculado: %.2f seg%n", drift);
-        System.out.printf("   Clientes registrados: %d/%d%n%n", 
-                          clientDrifts.size(), connectedClients.size());
+        log(" " + clientName + " registro su hora:");
+        log("   Cliente: " + segundosDelDiaAHHMMSS(clientTimeSec) + " (" + String.format("%.2f", clientTimeSec) + " seg)");
+        log("   RTT/2: " + String.format("%.2f", rttHalf) + " seg");
+        log("   Cliente+RTT/2: " + String.format("%.2f", clientTimeWithRTT) + " seg");
+        log("   Desfase calculado: " + String.format("%.2f", drift) + " seg");
+        log("   Clientes registrados: " + clientDrifts.size() + "/" + connectedClients.size() + "\n");
         
         return serverCoordinatorTimeSec;
     }
 
     @Override
-    public synchronized Map<String, Double> synchronizeAllClients(String clientName) throws RemoteException {
+    public synchronized Map<String, Double> synchronizeSelectedClients(Set<String> clientsToSync) throws RemoteException {
         
-        Map<String, Double> result = new HashMap<>();
+        Map<String, Double> result = new HashMap<>(); // Retornará el ajuste del servidor
         
-        // Verificar que todos los clientes conectados hayan registrado su hora
+        // Verificar que todos los clientes conectados hayan registrado su hora (Requisito de Berkeley)
         if (clientDrifts.size() != connectedClients.size()) {
-            System.out.printf("Sincronización solicitada por %s, pero faltan clientes. (%d/%d registrados)%n", 
-                              clientName, clientDrifts.size(), connectedClients.size());
+            log("Sincronización solicitada, pero faltan clientes. (" + clientDrifts.size() 
+                + "/" + connectedClients.size() + " registrados)");
             return result;
         }
         
-        System.out.printf("Sincronizacion activada por %s%n", clientName);
-        System.out.printf("Sincronizando %d clientes conectados.%n", connectedClients.size());
+        log("Sincronización activada por el Servidor.");
+        log("Clientes seleccionados para ajuste: " + clientsToSync.toString());
         
-        //Calcular la suma de todos los desfases
+        // 1. Calcular la suma de todos los desfases
         double sumOfDrifts = clientDrifts.values().stream().mapToDouble(Double::doubleValue).sum();
-        System.out.printf("Suma de desfases: %.2f seg%n", sumOfDrifts);
+        log("Suma de desfases: " + String.format("%.2f", sumOfDrifts) + " seg");
         
-        //Calcular el promedio (desfases / número total de nodos)
+        // 2. Calcular el promedio (desfases / número total de nodos)
         int totalNodes = connectedClients.size() + 1; // Clientes + Servidor
         double averageDrift = sumOfDrifts / totalNodes;
-        System.out.printf("Promedio: %.2f / %d = %.2f seg%n", sumOfDrifts, totalNodes, averageDrift);
+        log("Promedio: " + String.format("%.2f", sumOfDrifts) + " / " + totalNodes 
+            + " = " + String.format("%.2f", averageDrift) + " seg");
         
-        //Calcular ajustes para cada cliente y el servidor
-        System.out.println("\nAjustes calculados:");
+        // 3. Calcular ajustes para cada cliente y el servidor
+        log("\nAjustes calculados:");
         
         // Ajuste del servidor
         double serverAdjustment = averageDrift - 0; // Desfase del servidor es 0
         double serverNewTime = serverCoordinatorTimeSec + serverAdjustment;
-        System.out.printf("   Nodos:        Desface                      Nueva Hora\n");
-        System.out.printf("   Servidor:     %.2f - 0 = %+.2f seg       %s%n", 
-                          averageDrift, serverAdjustment, segundosDelDiaAHHMMSS(serverNewTime));
+        log("   Nodos:        Desfase                      Nueva Hora");
+        log("   Servidor:     " + String.format("%.2f", averageDrift) + " - 0 = " 
+            + String.format("%+.2f", serverAdjustment) + " seg       " 
+            + segundosDelDiaAHHMMSS(serverNewTime));
+        
+        // Guardar ajuste del servidor
+        result.put("adjustment", serverAdjustment);
+        result.put("newTime", serverNewTime);
         
         // Ajustes de los clientes 
         for (Map.Entry<String, Double> entry : clientDrifts.entrySet()) {
@@ -130,25 +145,29 @@ public class ClockSyncServiceImpl extends UnicastRemoteObject implements ClockSy
             double clientCurrentTime = serverCoordinatorTimeSec + drift; 
             double clientNewTime = clientCurrentTime + adjustment;
             
-            System.out.printf("   %s:    %.2f - %.2f = %+.2f seg    %s%n", 
-                              client, averageDrift, drift, adjustment, segundosDelDiaAHHMMSS(clientNewTime));
+            // Logear solo si el cliente fue seleccionado o si es un log informativo.
+            if (clientsToSync.contains(client)) {
+                 log("   -> " + client + ":    " + String.format("%.2f", averageDrift) + " - " 
+                     + String.format("%.2f", drift) + " = " + String.format("%+.2f", adjustment) 
+                     + " seg    " + segundosDelDiaAHHMMSS(clientNewTime) + " (ACTUALIZADO)");
+                
+                // Crear mapa de actualización para este cliente
+                Map<String, Double> clientUpdate = new HashMap<>();
+                clientUpdate.put("adjustment", adjustment);
+                clientUpdate.put("newTime", clientNewTime);
             
-            // Crear mapa de actualización para este cliente
-            Map<String, Double> clientUpdate = new HashMap<>();
-            clientUpdate.put("adjustment", adjustment);
-            clientUpdate.put("newTime", clientNewTime);
-            
-            // Guardar la actualización para que todos los clientes la puedan recibir
-            pendingSyncUpdates.put(client, clientUpdate);
+                // Guardar la actualización para que el cliente la pueda recibir
+                pendingSyncUpdates.put(client, clientUpdate);
+            } else {
+                 log("   " + client + ":    " + String.format("%.2f", averageDrift) + " - " 
+                     + String.format("%.2f", drift) + " = " + String.format("%+.2f", adjustment) 
+                     + " seg    " + segundosDelDiaAHHMMSS(clientNewTime) + " (NO AJUSTADO)");
+            }
         }
         
-        System.out.println("\nSincronizacion completada.\n");
-        // Devolver el resultado para el cliente que inició la sincronización
-        if (pendingSyncUpdates.containsKey(clientName)) {
-            result = new HashMap<>(pendingSyncUpdates.get(clientName));
-        }
+        log("\nSincronización completada.\n");
         
-        clientDrifts.clear();
+        // No limpiamos clientDrifts.clear() para permitir futuras sincronizaciones con la misma data.
         
         return result;
     }
@@ -156,9 +175,16 @@ public class ClockSyncServiceImpl extends UnicastRemoteObject implements ClockSy
     @Override
     public synchronized Map<String, Double> checkForSyncUpdate(String clientName) throws RemoteException {
         if (pendingSyncUpdates.containsKey(clientName)) {
-            Map<String, Double> update = pendingSyncUpdates.remove(clientName);
+            // Se remueve para que no se entregue dos veces
+            Map<String, Double> update = pendingSyncUpdates.remove(clientName); 
             return update;
         }
         return new HashMap<>();
+    }
+    
+    // NUEVO: Obtener la lista de clientes registrados (para la GUI del Servidor)
+    @Override
+    public synchronized Set<String> getRegisteredClients() throws RemoteException {
+        return new HashSet<>(clientDrifts.keySet());
     }
 }
