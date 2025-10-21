@@ -23,8 +23,11 @@ public class ClockSyncServer extends JFrame {
     private ClockSyncServiceImpl service;
     private JTextArea logArea;
     private JButton syncButton;
-    private JList<String> clientList;
-    private DefaultListModel<String> listModel;
+    private static final DefaultListModel<String> listModel =  new DefaultListModel<>();
+    private static final JList<String> clientList  = new JList<>(listModel);;
+
+   // private listModel =
+   
     private JLabel statusLabel;
 
     public ClockSyncServer() {
@@ -114,6 +117,11 @@ public class ClockSyncServer extends JFrame {
                     logArea.append("AJUSTE DEL SERVIDOR: " + String.format("%+.2f", serverAdjustment.get("adjustment")) + " seg\n");
                 }
                 
+                //Borrar seleccion
+                for (String client : selectedClients) {
+                    listModel.removeElement(client);
+                }
+                
                 syncButton.setEnabled(true);
 
             } catch (Exception e) {
@@ -143,8 +151,7 @@ public class ClockSyncServer extends JFrame {
         add(listTitle, gbc);
         
         // 3. JList de Clientes
-        listModel = new DefaultListModel<>();
-        clientList = new JList<>(listModel);
+
         clientList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         JScrollPane listScrollPane = new JScrollPane(clientList);
         gbc.gridy = 2; gbc.gridheight = 2; gbc.weighty = 0.2; gbc.gridwidth = 2;
