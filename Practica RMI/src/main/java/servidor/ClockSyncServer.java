@@ -17,7 +17,7 @@ import java.awt.*;
 
 public class ClockSyncServer extends JFrame {
     
-    private static final int RMI_PORT = 8080;
+    private static final int RMI_PORT = 1099;
     private static final String SERVICE_NAME = "ClockSyncService";
     
     private ClockSyncServiceImpl service;

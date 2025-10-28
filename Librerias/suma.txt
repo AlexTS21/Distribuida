@@ -1,0 +1,6 @@
+public class Suma {
+    public int sumar(int a, int b) {
+        System.out.println("Llamada para sumar dos datos (" + a + ", " + b + ")");
+        return a + b;
+    }
+}
