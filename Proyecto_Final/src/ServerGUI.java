@@ -1,9 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
 import org.apache.xmlrpc.webserver.WebServer;
-import org.apache.xmlrpc.XmlRpcHandler;// Apache XML-RPC library (you’ll link it later)
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -12,6 +7,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel; 
 import org.apache.xmlrpc.server.PropertyHandlerMapping;
 import org.apache.xmlrpc.server.XmlRpcServer;
+import java.util.List;
+
 /**
  *
  * @author aleja
@@ -26,14 +23,30 @@ public class ServerGUI extends javax.swing.JFrame {
     private Timer timer;
     private int currentTime = 0;
     private WebServer rpcServer;
-    private DefaultTableModel tableModel;
-
+    private DefaultTableModel tablePlanificator;
+    private DefaultTableModel tableProcess;
+    private final List<String> processNames = List.of("A", "B", "C", "D", "E");
+    private int antTime = 10;
     public ServerGUI() {
         initComponents();
-        initTable();
+        initPlanificatorTable();
+        initProcessTable();
+    }
+    private void initProcessTable(){
+        String[] columns = new String[3];
+        columns[0] = "Proceso";
+        columns[1] = "C";
+        columns[2] = "T";
+        Object[][] data = new Object[processNames.size()][3];
+        tableProcess = new DefaultTableModel(data, columns);
+        jTable3.setModel(tableProcess);
+        for (int i=0; i<processNames.size(); i++){
+           tableProcess.setValueAt(processNames.get(i), i, 0);
+        }
+        
     }
     
-    private void initTable() {
+    private void initPlanificatorTable() {
         String[] columns = new String[11];
         columns[0] = "P";
         for (int i = 1; i < 11; i++) {
@@ -41,15 +54,18 @@ public class ServerGUI extends javax.swing.JFrame {
         }
 
         Object[][] data = new Object[5][11];
-        tableModel = new DefaultTableModel(data, columns);
-        jTable1.setModel(tableModel);
+        tablePlanificator = new DefaultTableModel(data, columns);
+        jTable1.setModel(tablePlanificator);
+        
+        for (int i=0; i<processNames.size(); i++){
+            tablePlanificator.setValueAt(processNames.get(i), i, 0);
+        }
     }
     
     /**
      * Start a timer that updates column headers every 3 seconds.
      */
     private void startTimer() {
-        currentTime = 0;
 
         timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
@@ -57,14 +73,14 @@ public class ServerGUI extends javax.swing.JFrame {
             public void run() {
                 javax.swing.SwingUtilities.invokeLater(() -> updateTableHeaders());
             }
-        }, 0, 3000); // Every 3 seconds
+        }, 0, 1000); // Every  second
     }
     
     /**
      * Updates the table column titles to reflect the current time unit.
      */
     private void updateTableHeaders() {
-        if (currentTime < 10) {
+        if (currentTime <= antTime) {
             // Generate new headers dynamically
             String[] newHeaders = new String[11];
             newHeaders[0] = "P";
@@ -73,22 +89,25 @@ public class ServerGUI extends javax.swing.JFrame {
             }
 
             // Apply new headers
-            tableModel.setColumnIdentifiers(newHeaders);
+            tablePlanificator.setColumnIdentifiers(newHeaders);
 
             currentTime++;
         } else {
             timer.cancel(); // Stop after 10 updates
+            stopServer();
+            initServerButton.setEnabled(true);
+            antTime += currentTime;
         }
     }
     
-    private void updateTime() {
-        if (currentTime < 10) {
+    /*private void updateTime() {
+        if (currentTime <= 10) {
             jTable1.setValueAt(currentTime, 0, currentTime);
             currentTime++;
         } else {
             timer.cancel(); // Stop after 10 units
         }
-    }
+    }*/
     
     private void startServer() {
         try {
@@ -211,7 +230,11 @@ public class ServerGUI extends javax.swing.JFrame {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
+        jTable1.setEnabled(false);
+        jTable1.setRequestFocusEnabled(false);
+        jTable1.setRowHeight(25);
         jTable1.setSelectionBackground(new java.awt.Color(255, 255, 255));
+        jTable1.setShowGrid(true);
         jScrollPane1.setViewportView(jTable1);
 
         jLabel1.setFont(new java.awt.Font("MS Gothic", 0, 12)); // NOI18N
@@ -419,7 +442,7 @@ public class ServerGUI extends javax.swing.JFrame {
             int initTime = Math.max(serverTime, startTime);
             int endTime = initTime + duration;
 
-            System.out.println("📦 Proceso recibido: " + name +
+            System.out.println("Proceso recibido: " + name +
                     " | Llega en " + serverTime +
                     " | Inicia en " + initTime +
                     " | Termina en " + endTime);
@@ -427,9 +450,9 @@ public class ServerGUI extends javax.swing.JFrame {
             SwingUtilities.invokeLater(() -> {
             int emptyRow = gui.findEmptyRow();
             if (emptyRow >= 0) {
-                gui.tableModel.setValueAt(name, emptyRow, 0);
-                for (int i = initTime + 1; i <= endTime && i < gui.tableModel.getColumnCount(); i++) {
-                    gui.tableModel.setValueAt("█", emptyRow, i);
+                gui.tablePlanificator.setValueAt(name, emptyRow, 0);
+                for (int i = initTime + 1; i <= endTime && i < gui.tablePlanificator.getColumnCount(); i++) {
+                    gui.tablePlanificator.setValueAt("█", emptyRow, i);
                 }
             }
             });
@@ -439,8 +462,8 @@ public class ServerGUI extends javax.swing.JFrame {
     }
     
     private int findEmptyRow() {
-        for (int i = 0; i < tableModel.getRowCount(); i++) {
-            if (tableModel.getValueAt(i, 0) == null) {
+        for (int i = 0; i < tablePlanificator.getRowCount(); i++) {
+            if (tablePlanificator.getValueAt(i, 0) == null) {
                 return i;
             }
         }
