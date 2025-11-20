@@ -27,13 +27,125 @@ public class ServerGUI extends javax.swing.JFrame {
     private DefaultTableModel tableProcess;
     private final List<String> processNames = List.of("A", "B", "C", "D", "E");
     private int antTime = 10;
-    private String[] planificatorHeaders = new String[11];
+    private final String[] planificatorHeaders = new String[11];
     
+    //Inicializadores de interfaz grafica
     public ServerGUI() {
         initComponents();
         initPlanificatorTable();
         initProcessTable();
     }
+ 
+    public static void main(String args[]) {
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException ex) {
+            logger.log(java.util.logging.Level.SEVERE, null, ex);
+        }
+
+        java.awt.EventQueue.invokeLater(() -> new ServerGUI().setVisible(true));
+    }
+
+    //Server functions-----------------------------------------------------------------------
+    private void startServer() {
+        try {
+            int port = 8080;
+            messageLabel.setText("Iniciando servidor en el puerto " + port + "...");
+            rpcServer = new WebServer(port);
+            XmlRpcServer xmlRpcServer = rpcServer.getXmlRpcServer();
+
+            PropertyHandlerMapping phm = new PropertyHandlerMapping();
+
+            // Pasar la instancia del GUI a la clase estática
+            ProcessHandler.setGUI(this);
+            phm.addHandler("process", ProcessHandler.class);
+
+            xmlRpcServer.setHandlerMapping(phm);
+
+            rpcServer.start();
+            messageLabel.setText("Servidor RPC iniciado en el puerto " + port);
+
+            startTimer();
+            initServerButton.setEnabled(false);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error al iniciar el servidor RPC", e);
+            messageLabel.setText("Error al iniciar servidor");
+        }
+    }
+    
+    private void stopServer() {
+        if (rpcServer != null) {
+            rpcServer.shutdown();
+            logger.info("Servidor detenido.");
+        }
+        if (timer != null) {
+            timer.cancel();
+        }
+        messageLabel.setText("Servidor detenido");
+    }
+    
+    //Manejo de tiempo------------------------------------------------------------------------
+    private void startTimer() {
+        timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                javax.swing.SwingUtilities.invokeLater(() -> updatePlanificatorTableHeaders());
+            }
+        }, 0, 3000); // Every  second
+    }
+    
+    //Manejo de procesos-----------------------------------------------------------------------
+    //Revisar la logica si un procesos puede entrar a la tabla
+    public boolean checkProcess(String processName){
+        Object[][] dataTable = getPlanificatorTableData();
+        int index = processNames.indexOf(processName);
+        
+        return true;
+    }
+    
+    public static class ProcessHandler {
+        private static ServerGUI gui;
+
+        public static void setGUI(ServerGUI instance) {
+            gui = instance;
+        }
+        public String sendProcess(String name, int startTime, int duration) {
+            int serverTime = gui.currentTime;
+            int initTime = serverTime + startTime;
+            int endTime = initTime + duration -1;
+            //check if process can be in planificator
+            gui.messageLabel.setText("Proceso recibido (" + serverTime + "): " + name + " inicia en: " + initTime
+            + " termina en: " + endTime);
+            System.out.println("Proceso recibido: " + name +
+                    " | Llega en " + serverTime +
+                    " | Inicia en " + initTime +
+                    " | Termina en " + endTime);
+            gui.updateProcessTable(name, startTime, duration);
+            SwingUtilities.invokeLater(() -> {
+                int index = gui.processNames.indexOf(name);
+                //Draw proceess if thre resource is avalible
+                gui.tablePlanificator.setValueAt("x", index, 1);
+                System.out.println("START TIME INDEX: " +startTime);
+                for (int i=2+startTime; i<startTime+2+duration; i++ ){
+                    gui.tablePlanificator.setValueAt("o", index, i);
+                }
+                
+                //Object[][] tableData = gui.getPlanificatorTableData();
+              
+            });
+
+            return "Proceso " + name + " recibido. Inicia en " + initTime + ", termina en " + endTime;
+        }
+    }
+    
+    
+    //Inicializadores de tabla-----------------------------------------------------------------
     private void initProcessTable(){
         String[] columns = new String[3];
         columns[0] = "Proceso";
@@ -64,30 +176,14 @@ public class ServerGUI extends javax.swing.JFrame {
         }
     }
     
+    //Actalizadores de tablas-----------------------------------------------------------------
     private void updateProcessTable(String name, int initTime, int durationTime){
         int index = processNames.indexOf(name);
         tableProcess.setValueAt(initTime, index, 1);
         tableProcess.setValueAt(durationTime, index, 2);
     }
     
-    /**
-     * Start a timer that updates column headers every 3 seconds.
-     */
-    private void startTimer() {
-
-        timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                javax.swing.SwingUtilities.invokeLater(() -> updateTableHeaders());
-            }
-        }, 0, 3000); // Every  second
-    }
-    
-    /**
-     * Updates the table column titles to reflect the current time unit.
-     */
-    private void updateTableHeaders() {
+    private void updatePlanificatorTableHeaders() {
         if (currentTime <= antTime) {
             // Generate new headers dynamically
             planificatorHeaders[0] = "P";
@@ -108,44 +204,65 @@ public class ServerGUI extends javax.swing.JFrame {
         }
     }
     
-    
-    private void startServer() {
-        try {
-            int port = 8080;
-            messageLabel.setText("Iniciando servidor en el puerto " + port + "...");
-            rpcServer = new WebServer(port);
-            XmlRpcServer xmlRpcServer = rpcServer.getXmlRpcServer();
-
-            PropertyHandlerMapping phm = new PropertyHandlerMapping();
-
-            // Pasar la instancia del GUI a la clase estática
-            ProcessHandler.setGUI(this);
-            phm.addHandler("process", ProcessHandler.class);
-
-            xmlRpcServer.setHandlerMapping(phm);
-
-            rpcServer.start();
-            messageLabel.setText("Servidor RPC iniciado en el puerto " + port);
-
-            startTimer();
-            initServerButton.setEnabled(false);
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error al iniciar el servidor RPC", e);
-            messageLabel.setText("Error al iniciar servidor");
+    private void updatePlanificatorTable(){
+        Object[][] tableData = getPlanificatorTableData();
+        for (int row = 0; row < tableData.length; row++) {
+            for (int col = 1; col < tableData[row].length; col++) {
+            //Eschange the data in the next column
+                if (col == tableData[row].length-1){
+                    tableData[row][col] = null;
+                }else{
+                   tableData[row][col] = tableData[row][col+1];
+                }
+            }
         }
+        
+        tablePlanificator = new DefaultTableModel(tableData,  planificatorHeaders);
+        jTable1.setModel(tablePlanificator);
+        printTableData(tableData);
+        
     }
-
     
-    private void stopServer() {
-        if (rpcServer != null) {
-            rpcServer.shutdown();
-            logger.info("Servidor detenido.");
+    //Utilities para tablas
+    public void printTableData(Object[][] tableData) {
+        if (tableData == null) {
+            System.out.println("Los datos de la tabla son nulos");
+            return;
         }
-        if (timer != null) {
-            timer.cancel();
+
+        System.out.println("=== CONTENIDO DE LA TABLA DEL PLANIFICADOR ===");
+        System.out.print("HEADERS: \t");
+        for (int i = 1; i < 11; i++) {
+                System.out.print(currentTime + i-1 + "  \t");
+            }
+        System.out.println("");
+        for (int row = 0; row < tableData.length; row++) {
+            System.out.print("Fila " + row + ": ");
+            for (int col = 0; col < tableData[row].length; col++) {
+                Object value = tableData[row][col];
+                System.out.print((value != null ? value.toString() : "null") + "\t");
+            }
+            System.out.println();
         }
-        messageLabel.setText("Servidor detenido");
+        System.out.println("=============================================");
     }
+    
+    public Object[][] getPlanificatorTableData() {
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        int rowCount = model.getRowCount();
+        int colCount = model.getColumnCount();
+
+        Object[][] tableData = new Object[rowCount][colCount];
+
+        for (int row = 0; row < rowCount; row++) {
+            for (int col = 0; col < colCount; col++) {
+                tableData[row][col] = model.getValueAt(row, col);
+            }
+        }
+
+        return tableData;
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -407,131 +524,13 @@ public class ServerGUI extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
+    
+    //Buttons actions
     private void initServerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_initServerButtonActionPerformed
         // TODO add your handling code here:
-        initServerButton.setEnabled(false); // Prevent multiple starts
+        initServerButton.setEnabled(false); // Desactivar
         startServer();
     }//GEN-LAST:event_initServerButtonActionPerformed
-
-    /**
-     * @param args the command line arguments
-     */
-    
-    public static void main(String args[]) {
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException ex) {
-            logger.log(java.util.logging.Level.SEVERE, null, ex);
-        }
-
-        java.awt.EventQueue.invokeLater(() -> new ServerGUI().setVisible(true));
-    }
-    
-    private void updatePlanificatorTable(){
-        Object[][] tableData = getPlanificatorTableData();
-        for (int row = 0; row < tableData.length; row++) {
-            for (int col = 1; col < tableData[row].length; col++) {
-            //Eschange the data in the next column
-                if (col == tableData[row].length-1){
-                    tableData[row][col] = null;
-                }else{
-                   tableData[row][col] = tableData[row][col+1];
-                }
-            }
-        }
-        
-        tablePlanificator = new DefaultTableModel(tableData,  planificatorHeaders);
-        jTable1.setModel(tablePlanificator);
-        printTableData(tableData);
-        
-    }
-    
-    public void printTableData(Object[][] tableData) {
-        if (tableData == null) {
-            System.out.println("Los datos de la tabla son nulos");
-            return;
-        }
-
-        System.out.println("=== CONTENIDO DE LA TABLA DEL PLANIFICADOR ===");
-        System.out.print("HEADERS: \t");
-        for (int i = 1; i < 11; i++) {
-                System.out.print(currentTime + i-1 + "  \t");
-            }
-        System.out.println("");
-        for (int row = 0; row < tableData.length; row++) {
-            System.out.print("Fila " + row + ": ");
-            for (int col = 0; col < tableData[row].length; col++) {
-                Object value = tableData[row][col];
-                System.out.print((value != null ? value.toString() : "null") + "\t");
-            }
-            System.out.println();
-        }
-        System.out.println("=============================================");
-    }
-    
-    public Object[][] getPlanificatorTableData() {
-        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-        int rowCount = model.getRowCount();
-        int colCount = model.getColumnCount();
-
-        Object[][] tableData = new Object[rowCount][colCount];
-
-        for (int row = 0; row < rowCount; row++) {
-            for (int col = 0; col < colCount; col++) {
-                tableData[row][col] = model.getValueAt(row, col);
-            }
-        }
-
-        return tableData;
-    }
-
-    public boolean checkProcess(String processName){
-        Object[][] dataTable = getPlanificatorTableData();
-        int index = processNames.indexOf(processName);
-        
-        return true;
-    }
-    public static class ProcessHandler {
-        private static ServerGUI gui;
-
-        public static void setGUI(ServerGUI instance) {
-            gui = instance;
-        }
-        public String sendProcess(String name, int startTime, int duration) {
-            int serverTime = gui.currentTime;
-            int initTime = serverTime + startTime;
-            int endTime = initTime + duration -1;
-            //check if process can be in planificator
-            gui.messageLabel.setText("Proceso recibido (" + serverTime + "): " + name + " inicia en: " + initTime
-            + " termina en: " + endTime);
-            System.out.println("Proceso recibido: " + name +
-                    " | Llega en " + serverTime +
-                    " | Inicia en " + initTime +
-                    " | Termina en " + endTime);
-            gui.updateProcessTable(name, startTime, duration);
-            SwingUtilities.invokeLater(() -> {
-                int index = gui.processNames.indexOf(name);
-                //Draw proceess if thre resource is avalible
-                gui.tablePlanificator.setValueAt("x", index, 1);
-                System.out.println("START TIME INDEX: " +startTime);
-                for (int i=2+startTime; i<startTime+2+duration; i++ ){
-                    gui.tablePlanificator.setValueAt("o", index, i);
-                }
-                
-                //Object[][] tableData = gui.getPlanificatorTableData();
-              
-            });
-
-            return "Proceso " + name + " recibido. Inicia en " + initTime + ", termina en " + endTime;
-        }
-    }
-    
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton initServerButton;
