@@ -27,6 +27,8 @@ public class ServerGUI extends javax.swing.JFrame {
     private DefaultTableModel tableProcess;
     private final List<String> processNames = List.of("A", "B", "C", "D", "E");
     private int antTime = 10;
+    private String[] planificatorHeaders = new String[11];
+    
     public ServerGUI() {
         initComponents();
         initPlanificatorTable();
@@ -47,14 +49,14 @@ public class ServerGUI extends javax.swing.JFrame {
     }
     
     private void initPlanificatorTable() {
-        String[] columns = new String[11];
-        columns[0] = "P";
+        
+        planificatorHeaders[0] = "P";
         for (int i = 1; i < 11; i++) {
-            columns[i] = String.valueOf(i-1);
+            planificatorHeaders[i] = String.valueOf(i-1);
         }
 
         Object[][] data = new Object[5][11];
-        tablePlanificator = new DefaultTableModel(data, columns);
+        tablePlanificator = new DefaultTableModel(data, planificatorHeaders);
         jTable1.setModel(tablePlanificator);
         
         for (int i=0; i<processNames.size(); i++){
@@ -82,15 +84,14 @@ public class ServerGUI extends javax.swing.JFrame {
     private void updateTableHeaders() {
         if (currentTime <= antTime) {
             // Generate new headers dynamically
-            String[] newHeaders = new String[11];
-            newHeaders[0] = "P";
+            planificatorHeaders[0] = "P";
             for (int i = 1; i < 11; i++) {
-                newHeaders[i] = String.valueOf((currentTime + i-1));
+                planificatorHeaders[i] = String.valueOf((currentTime + i-1));
             }
-
+            
             // Apply new headers
-            tablePlanificator.setColumnIdentifiers(newHeaders);
-
+            tablePlanificator.setColumnIdentifiers(planificatorHeaders);
+            updatePlanificatorTable();
             currentTime++;
         } else {
             timer.cancel(); // Stop after 10 updates
@@ -431,6 +432,62 @@ public class ServerGUI extends javax.swing.JFrame {
 
         java.awt.EventQueue.invokeLater(() -> new ServerGUI().setVisible(true));
     }
+    
+    private void updatePlanificatorTable(){
+        Object[][] tableData = getPlanificatorTableData();
+        for (int row = 0; row < tableData.length; row++) {
+            for (int col = 1; col < tableData[row].length; col++) {
+            //Eschange the data in the next column
+                if (col == tableData[row].length-1){
+                    tableData[row][col] = null;
+                }else{
+                   tableData[row][col] = tableData[row][col+1];
+                }
+            }
+        }
+        
+        tablePlanificator = new DefaultTableModel(tableData,  planificatorHeaders);
+        jTable1.setModel(tablePlanificator);
+        printTableData(tableData);
+        
+    }
+    
+    public void printTableData(Object[][] tableData) {
+        if (tableData == null) {
+            System.out.println("Los datos de la tabla son nulos");
+            return;
+        }
+
+        System.out.println("=== CONTENIDO DE LA TABLA DEL PLANIFICADOR ===");
+
+        for (int row = 0; row < tableData.length; row++) {
+            System.out.print("Fila " + row + ": ");
+            for (int col = 0; col < tableData[row].length; col++) {
+                Object value = tableData[row][col];
+                System.out.print((value != null ? value.toString() : "null") + "\t");
+            }
+            System.out.println();
+        }
+        System.out.println("=============================================");
+    }
+    
+    public Object[][] getPlanificatorTableData() {
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        int rowCount = model.getRowCount();
+        int colCount = model.getColumnCount();
+
+        Object[][] tableData = new Object[rowCount][colCount];
+
+        for (int row = 0; row < rowCount; row++) {
+            for (int col = 0; col < colCount; col++) {
+                tableData[row][col] = model.getValueAt(row, col);
+            }
+        }
+
+        return tableData;
+    }
+
+    
     public static class ProcessHandler {
         private static ServerGUI gui;
 
@@ -441,34 +498,25 @@ public class ServerGUI extends javax.swing.JFrame {
             int serverTime = gui.currentTime;
             int initTime = Math.max(serverTime, startTime);
             int endTime = initTime + duration;
-
+            //check if process can be in planificator
             System.out.println("Proceso recibido: " + name +
                     " | Llega en " + serverTime +
                     " | Inicia en " + initTime +
                     " | Termina en " + endTime);
-
+            
             SwingUtilities.invokeLater(() -> {
-            int emptyRow = gui.findEmptyRow();
-            if (emptyRow >= 0) {
-                gui.tablePlanificator.setValueAt(name, emptyRow, 0);
-                for (int i = initTime + 1; i <= endTime && i < gui.tablePlanificator.getColumnCount(); i++) {
-                    gui.tablePlanificator.setValueAt("█", emptyRow, i);
-                }
-            }
+                int index = gui.processNames.indexOf(name);
+           
+                gui.tablePlanificator.setValueAt("x", index, 5);
+                //Object[][] tableData = gui.getPlanificatorTableData();
+                gui.updatePlanificatorTable();
+              
             });
 
             return "Proceso " + name + " recibido. Inicia en " + initTime + ", termina en " + endTime;
         }
     }
     
-    private int findEmptyRow() {
-        for (int i = 0; i < tablePlanificator.getRowCount(); i++) {
-            if (tablePlanificator.getValueAt(i, 0) == null) {
-                return i;
-            }
-        }
-        return -1;
-    }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton initServerButton;
