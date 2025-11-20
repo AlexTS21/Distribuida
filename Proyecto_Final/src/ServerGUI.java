@@ -64,6 +64,12 @@ public class ServerGUI extends javax.swing.JFrame {
         }
     }
     
+    private void updateProcessTable(String name, int initTime, int durationTime){
+        int index = processNames.indexOf(name);
+        tableProcess.setValueAt(initTime, index, 1);
+        tableProcess.setValueAt(durationTime, index, 2);
+    }
+    
     /**
      * Start a timer that updates column headers every 3 seconds.
      */
@@ -94,6 +100,7 @@ public class ServerGUI extends javax.swing.JFrame {
             updatePlanificatorTable();
             currentTime++;
         } else {
+            //Check extra time if no process enter
             timer.cancel(); // Stop after 10 updates
             stopServer();
             initServerButton.setEnabled(true);
@@ -101,14 +108,6 @@ public class ServerGUI extends javax.swing.JFrame {
         }
     }
     
-    /*private void updateTime() {
-        if (currentTime <= 10) {
-            jTable1.setValueAt(currentTime, 0, currentTime);
-            currentTime++;
-        } else {
-            timer.cancel(); // Stop after 10 units
-        }
-    }*/
     
     private void startServer() {
         try {
@@ -268,6 +267,7 @@ public class ServerGUI extends javax.swing.JFrame {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
+        jTable3.setRowHeight(25);
         jScrollPane3.setViewportView(jTable3);
 
         jLabel4.setFont(new java.awt.Font("MS Gothic", 0, 12)); // NOI18N
@@ -514,7 +514,7 @@ public class ServerGUI extends javax.swing.JFrame {
                     " | Llega en " + serverTime +
                     " | Inicia en " + initTime +
                     " | Termina en " + endTime);
-            
+            gui.updateProcessTable(name, startTime, duration);
             SwingUtilities.invokeLater(() -> {
                 int index = gui.processNames.indexOf(name);
                 //Draw proceess if thre resource is avalible
