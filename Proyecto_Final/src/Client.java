@@ -32,7 +32,7 @@ public class Client {
                 
                 int c = ThreadLocalRandom.current().nextInt(1, 5 + 1);
                 int t = ThreadLocalRandom.current().nextInt(1, 6 + 1);
-
+                System.out.println("C: " + c + " duracion: " +t);
                 switch (opc) {
                     case 1 -> {
                         try {

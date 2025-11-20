@@ -75,7 +75,7 @@ public class ServerGUI extends javax.swing.JFrame {
             public void run() {
                 javax.swing.SwingUtilities.invokeLater(() -> updateTableHeaders());
             }
-        }, 0, 1000); // Every  second
+        }, 0, 3000); // Every  second
     }
     
     /**
@@ -459,7 +459,11 @@ public class ServerGUI extends javax.swing.JFrame {
         }
 
         System.out.println("=== CONTENIDO DE LA TABLA DEL PLANIFICADOR ===");
-
+        System.out.print("HEADERS: \t");
+        for (int i = 1; i < 11; i++) {
+                System.out.print(currentTime + i-1 + "  \t");
+            }
+        System.out.println("");
         for (int row = 0; row < tableData.length; row++) {
             System.out.print("Fila " + row + ": ");
             for (int col = 0; col < tableData[row].length; col++) {
@@ -487,7 +491,12 @@ public class ServerGUI extends javax.swing.JFrame {
         return tableData;
     }
 
-    
+    public boolean checkProcess(String processName){
+        Object[][] dataTable = getPlanificatorTableData();
+        int index = processNames.indexOf(processName);
+        
+        return true;
+    }
     public static class ProcessHandler {
         private static ServerGUI gui;
 
@@ -496,9 +505,11 @@ public class ServerGUI extends javax.swing.JFrame {
         }
         public String sendProcess(String name, int startTime, int duration) {
             int serverTime = gui.currentTime;
-            int initTime = Math.max(serverTime, startTime);
-            int endTime = initTime + duration;
+            int initTime = serverTime + startTime;
+            int endTime = initTime + duration -1;
             //check if process can be in planificator
+            gui.messageLabel.setText("Proceso recibido (" + serverTime + "): " + name + " inicia en: " + initTime
+            + " termina en: " + endTime);
             System.out.println("Proceso recibido: " + name +
                     " | Llega en " + serverTime +
                     " | Inicia en " + initTime +
@@ -506,10 +517,14 @@ public class ServerGUI extends javax.swing.JFrame {
             
             SwingUtilities.invokeLater(() -> {
                 int index = gui.processNames.indexOf(name);
-           
-                gui.tablePlanificator.setValueAt("x", index, 5);
+                //Draw proceess if thre resource is avalible
+                gui.tablePlanificator.setValueAt("x", index, 1);
+                System.out.println("START TIME INDEX: " +startTime);
+                for (int i=2+startTime; i<startTime+2+duration; i++ ){
+                    gui.tablePlanificator.setValueAt("o", index, i);
+                }
+                
                 //Object[][] tableData = gui.getPlanificatorTableData();
-                gui.updatePlanificatorTable();
               
             });
 
