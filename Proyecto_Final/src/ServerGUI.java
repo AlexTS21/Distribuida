@@ -227,6 +227,21 @@ public class ServerGUI extends javax.swing.JFrame {
         }
     }
     
+    private void popProcessQueueTable() {
+        // Move all elents up
+        for (int i = 0; i < 6; i++) {
+            // Mover datos de la fila i+1 a la fila i
+            tableQueue.setValueAt(tableQueue.getValueAt(i + 1, 1), i, 1);
+            tableQueue.setValueAt(tableQueue.getValueAt(i + 1, 2), i, 2);
+            tableQueue.setValueAt(tableQueue.getValueAt(i + 1, 3), i, 3);
+        }
+
+        // clean last row
+        tableQueue.setValueAt(null, 6, 1);
+        tableQueue.setValueAt(null, 6, 2);
+        tableQueue.setValueAt(null, 6, 3);
+    }
+    
     private boolean isQueueTableFull(){
         if (tableQueue.getValueAt(6, 1) == null ){
             return false;
@@ -234,14 +249,40 @@ public class ServerGUI extends javax.swing.JFrame {
         return true;
     }
     
+    private boolean isQueueTableEmpy(){
+        if (tableQueue.getValueAt(0, 1) == null ){
+            return true;
+        }
+        return false;
+    }
+    
+    //Contiene la logica para actualizar la tabla
     private void updatePlanificatorTableHeaders() {
         if (currentTime <= antTime) {
+            //Logica para sacar a un proceso de la cola
+            if (!isQueueTableEmpy()){
+                String processQueueName = (String) tableQueue.getValueAt(0, 1);
+                int processQueueStartTime = (int) tableQueue.getValueAt(0, 2);
+                int processQueueDuration = (int) tableQueue.getValueAt(0, 3);
+                if(checkProcess(processQueueName ,processQueueStartTime , processQueueDuration)){
+                    //Draw new process
+                    int index = processNames.indexOf(processQueueName);
+                    //Draw proceess if thre resource is avalible
+                    System.out.println("START TIME INDEX: " + processQueueStartTime);
+                    for (int i=2+processQueueStartTime; i<processQueueStartTime+2+processQueueDuration; i++ ){
+                        tablePlanificator.setValueAt("o", index, i);
+                    }
+                    //Delete for queue table 
+                    popProcessQueueTable();
+                    //Incert in process table
+                    updateProcessTable( processQueueName, processQueueStartTime, processQueueDuration);
+                }
+            }
             // Generate new headers dynamically
             planificatorHeaders[0] = "P";
             for (int i = 1; i < 11; i++) {
                 planificatorHeaders[i] = String.valueOf((currentTime + i-1));
             }
-            
             // Apply new headers
             tablePlanificator.setColumnIdentifiers(planificatorHeaders);
             updatePlanificatorTable();
