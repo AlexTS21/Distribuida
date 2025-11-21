@@ -102,10 +102,17 @@ public class ServerGUI extends javax.swing.JFrame {
     
     //Manejo de procesos-----------------------------------------------------------------------
     //Revisar la logica si un procesos puede entrar a la tabla
-    public boolean checkProcess(String processName){
+    public boolean checkProcess(String processName, int initTime, int durationTime){
         Object[][] dataTable = getPlanificatorTableData();
         int index = processNames.indexOf(processName);
-        
+        //Check if currentTime + init time is avalible (null)
+        if (dataTable[index][initTime+1] != null){
+            System.out.println("INDEX OF END TIME: " + initTime+2);
+            return false;
+        //Check if duration dont excede planificator resource
+        }else if(initTime+durationTime > 10){
+            return false;
+        }
         return true;
     }
     
@@ -115,32 +122,36 @@ public class ServerGUI extends javax.swing.JFrame {
         public static void setGUI(ServerGUI instance) {
             gui = instance;
         }
+        
         public String sendProcess(String name, int startTime, int duration) {
             int serverTime = gui.currentTime;
             int initTime = serverTime + startTime;
             int endTime = initTime + duration -1;
-            //check if process can be in planificator
+            
             gui.messageLabel.setText("Proceso recibido (" + serverTime + "): " + name + " inicia en: " + initTime
             + " termina en: " + endTime);
             System.out.println("Proceso recibido: " + name +
                     " | Llega en " + serverTime +
                     " | Inicia en " + initTime +
                     " | Termina en " + endTime);
-            gui.updateProcessTable(name, startTime, duration);
-            SwingUtilities.invokeLater(() -> {
-                int index = gui.processNames.indexOf(name);
-                //Draw proceess if thre resource is avalible
-                gui.tablePlanificator.setValueAt("x", index, 1);
-                System.out.println("START TIME INDEX: " +startTime);
-                for (int i=2+startTime; i<startTime+2+duration; i++ ){
-                    gui.tablePlanificator.setValueAt("o", index, i);
-                }
-                
-                //Object[][] tableData = gui.getPlanificatorTableData();
-              
-            });
-
-            return "Proceso " + name + " recibido. Inicia en " + initTime + ", termina en " + endTime;
+            
+            //check if process can be in planificator
+            if (gui.checkProcess(name, initTime, duration)){
+                gui.updateProcessTable(name, startTime, duration);
+            
+                SwingUtilities.invokeLater(() -> {
+                    int index = gui.processNames.indexOf(name);
+                    //Draw proceess if thre resource is avalible
+                    gui.tablePlanificator.setValueAt("x", index, 1);
+                    System.out.println("START TIME INDEX: " +startTime);
+                    for (int i=2+startTime; i<startTime+2+duration; i++ ){
+                        gui.tablePlanificator.setValueAt("o", index, i);
+                    }
+                });
+                return "Proceso " + name + " recibido. Inicia en " + initTime + ", termina en " + endTime;
+            }//Check if queue of process if avalible to insert
+            
+            return "Proceso " + name + " no pudo ser despachado por el palnificador porque no hay recurso";
         }
     }
     
