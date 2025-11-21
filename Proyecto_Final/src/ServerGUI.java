@@ -25,6 +25,7 @@ public class ServerGUI extends javax.swing.JFrame {
     private WebServer rpcServer;
     private DefaultTableModel tablePlanificator;
     private DefaultTableModel tableProcess;
+    private DefaultTableModel tableQueue;
     private final List<String> processNames = List.of("A", "B", "C", "D", "E");
     private int antTime = 10;
     private final String[] planificatorHeaders = new String[11];
@@ -34,6 +35,7 @@ public class ServerGUI extends javax.swing.JFrame {
         initComponents();
         initPlanificatorTable();
         initProcessTable();
+        initQueueTable();
     }
  
     public static void main(String args[]) {
@@ -116,6 +118,7 @@ public class ServerGUI extends javax.swing.JFrame {
         return true;
     }
     
+    //Clase para el manejo de la recepcion de procesos
     public static class ProcessHandler {
         private static ServerGUI gui;
 
@@ -136,7 +139,7 @@ public class ServerGUI extends javax.swing.JFrame {
                     " | Termina en " + endTime);
             
             //check if process can be in planificator
-            if (gui.checkProcess(name, initTime, duration)){
+            if (gui.checkProcess(name, startTime, duration)){
                 gui.updateProcessTable(name, startTime, duration);
             
                 SwingUtilities.invokeLater(() -> {
@@ -150,7 +153,12 @@ public class ServerGUI extends javax.swing.JFrame {
                 });
                 return "Proceso " + name + " recibido. Inicia en " + initTime + ", termina en " + endTime;
             }//Check if queue of process if avalible to insert
-            
+            else{
+                if (! gui.isQueueTableFull()){
+                    gui.pushProcessQueueTable(name, startTime, duration);
+                    return "Proceso " + name + " entro en la cola de espera del planificador";
+                }
+            }
             return "Proceso " + name + " no pudo ser despachado por el palnificador porque no hay recurso";
         }
     }
@@ -168,7 +176,20 @@ public class ServerGUI extends javax.swing.JFrame {
         for (int i=0; i<processNames.size(); i++){
            tableProcess.setValueAt(processNames.get(i), i, 0);
         }
-        
+    }
+    
+    private void initQueueTable(){
+        String[] columns = new String[4];
+        columns[0] = "I";
+        columns[1] = "Proceso";
+        columns[2] = "C";
+        columns[3] = "T";
+        Object[][] data = new Object[7][4];
+        for (int i=0; i<7; i++){
+            data[i][0] = i+1;
+        }
+        tableQueue = new DefaultTableModel(data, columns);
+        jTable4.setModel(tableQueue);
     }
     
     private void initPlanificatorTable() {
@@ -192,6 +213,25 @@ public class ServerGUI extends javax.swing.JFrame {
         int index = processNames.indexOf(name);
         tableProcess.setValueAt(initTime, index, 1);
         tableProcess.setValueAt(durationTime, index, 2);
+    }
+    
+    //Incerta un proceso en la ultima posicion disponible de la tabla de cola
+    private void pushProcessQueueTable(String name, int initTime, int durationTime){
+        for(int i =0; i<7; i++){
+            if (tableQueue.getValueAt(i, 1) == null ){
+                tableQueue.setValueAt(name, i, 1);
+                tableQueue.setValueAt(initTime, i, 2);
+                tableQueue.setValueAt(durationTime, i, 3);
+                break;
+            }
+        }
+    }
+    
+    private boolean isQueueTableFull(){
+        if (tableQueue.getValueAt(6, 1) == null ){
+            return false;
+        }
+        return true;
     }
     
     private void updatePlanificatorTableHeaders() {
@@ -415,6 +455,7 @@ public class ServerGUI extends javax.swing.JFrame {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
+        jTable4.setRowHeight(24);
         jScrollPane4.setViewportView(jTable4);
 
         jTable5.setModel(new javax.swing.table.DefaultTableModel(
