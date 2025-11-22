@@ -269,7 +269,7 @@ public class ServerGUI extends javax.swing.JFrame {
                     int index = processNames.indexOf(processQueueName);
                     //Draw proceess if thre resource is avalible
                     System.out.println("START TIME INDEX: " + processQueueStartTime);
-                    for (int i=2+processQueueStartTime; i<processQueueStartTime+2+processQueueDuration; i++ ){
+                    for (int i=1+processQueueStartTime; i<processQueueStartTime+1+processQueueDuration; i++ ){
                         tablePlanificator.setValueAt("o", index, i);
                     }
                     //Delete for queue table 
