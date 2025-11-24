@@ -40,6 +40,7 @@ public class ServerGUI extends javax.swing.JFrame {
     private int antTime = 10;
     private final String[] planificatorHeaders = new String[11];
     private final int actualizationTime = 4000;
+    private final int desconectionInactivityTime = 0;
     
     private Map<String, Integer> processArrivalTime = new HashMap<>();
     private Map<String, Integer> processStartTime = new HashMap<>();
@@ -207,6 +208,7 @@ public class ServerGUI extends javax.swing.JFrame {
             }
         }
     }
+    
     //Revisar la logica si un procesos puede entrar a la tabla
     public boolean checkProcess(String processName, int initTime, int durationTime){
         Object[][] dataTable = getPlanificatorTableData();
