@@ -3,7 +3,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import javax.swing.SwingUtilities;
-//import java.util.logging.Logger;
 import javax.swing.table.DefaultTableModel; 
 import org.apache.xmlrpc.server.PropertyHandlerMapping;
 import org.apache.xmlrpc.server.XmlRpcServer;
@@ -29,6 +28,7 @@ public class ServerGUI extends javax.swing.JFrame {
     private final List<String> processNames = List.of("A", "B", "C", "D", "E");
     private int antTime = 10;
     private final String[] planificatorHeaders = new String[11];
+    private final int actualizationTime = 4000;
     
     //Inicializadores de interfaz grafica
     public ServerGUI() {
@@ -97,12 +97,80 @@ public class ServerGUI extends javax.swing.JFrame {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                javax.swing.SwingUtilities.invokeLater(() -> updatePlanificatorTableHeaders());
+                javax.swing.SwingUtilities.invokeLater(() -> {
+                    if (shouldContinueTimer()) {
+                        executeMainLogic();
+                    } else {
+                        handleTimerCompletion();
+                    }
+                });
             }
-        }, 0, 3000); // Every  second
+        }, 0, actualizationTime); // Every  second
     }
     
-    //Manejo de procesos-----------------------------------------------------------------------
+    //Actualizar headers
+    //updatePlanificatorTableHeaders();
+    //Actualizar contenido de la tabla del planificador
+    //Actualizar tabla de procesos
+    //Intentar sacar procesos de la cola
+    //Actualizar timer aqui
+    private void executeMainLogic() {
+        // 1. Actualizar headers de la tabla
+        updatePlanificatorTable();
+
+        // 2. Procesar cola de espera
+        processQueue();
+
+        // 3. Actualizar otras tablas
+        //updateProcessTables();
+
+        // 4. Incrementar tiempo
+        currentTime++;
+    }
+    
+    private void handleTimerCompletion() {
+        // Detener timer y servidor
+        timer.cancel();
+        stopServer();
+
+        // Habilitar botón de inicio
+        initServerButton.setEnabled(true);
+
+        // Extender el tiempo para el próximo ciclo
+        antTime += currentTime;
+
+        // Mostrar mensaje al usuario
+        messageLabel.setText("Ciclo de planificación completado. Servidor en pausa.");
+
+        // Log para debugging
+        logger.info("Timer completado. CurrentTime: " + currentTime + ", antTime: " + antTime);
+    }
+    
+    private boolean shouldContinueTimer() {
+        return currentTime <= antTime;
+    }
+
+    //Manejo de cola de procesos-----------------------------------------------------------------------
+    public void processQueue(){
+        if (!isQueueTableEmpy()){
+            String processQueueName = (String) tableQueue.getValueAt(0, 1);
+            int processQueueStartTime = (int) tableQueue.getValueAt(0, 2);
+            int processQueueDuration = (int) tableQueue.getValueAt(0, 3);
+            if(checkProcess(processQueueName ,processQueueStartTime , processQueueDuration)){
+                //Draw new process
+                int index = processNames.indexOf(processQueueName);
+                //Draw proceess if thre resource is avalible
+                System.out.println("START TIME INDEX: " + processQueueStartTime);
+                for (int i=1+processQueueStartTime; i<processQueueStartTime+1+processQueueDuration; i++ ){
+                    tablePlanificator.setValueAt("o", index, i);
+                }
+                //Delete for queue table 
+                popProcessQueueTable();
+                //Incert in process table
+                updateProcessTable( processQueueName, processQueueStartTime, processQueueDuration);
+            }
+        }
+    }
     //Revisar la logica si un procesos puede entrar a la tabla
     public boolean checkProcess(String processName, int initTime, int durationTime){
         Object[][] dataTable = getPlanificatorTableData();
@@ -162,7 +230,6 @@ public class ServerGUI extends javax.swing.JFrame {
             return "Proceso " + name + " no pudo ser despachado por el palnificador porque no hay recurso";
         }
     }
-    
     
     //Inicializadores de tabla-----------------------------------------------------------------
     private void initProcessTable(){
@@ -256,47 +323,11 @@ public class ServerGUI extends javax.swing.JFrame {
         return false;
     }
     
-    //Contiene la logica para actualizar la tabla
-    private void updatePlanificatorTableHeaders() {
-        if (currentTime <= antTime) {
-            //Logica para sacar a un proceso de la cola
-            if (!isQueueTableEmpy()){
-                String processQueueName = (String) tableQueue.getValueAt(0, 1);
-                int processQueueStartTime = (int) tableQueue.getValueAt(0, 2);
-                int processQueueDuration = (int) tableQueue.getValueAt(0, 3);
-                if(checkProcess(processQueueName ,processQueueStartTime , processQueueDuration)){
-                    //Draw new process
-                    int index = processNames.indexOf(processQueueName);
-                    //Draw proceess if thre resource is avalible
-                    System.out.println("START TIME INDEX: " + processQueueStartTime);
-                    for (int i=1+processQueueStartTime; i<processQueueStartTime+1+processQueueDuration; i++ ){
-                        tablePlanificator.setValueAt("o", index, i);
-                    }
-                    //Delete for queue table 
-                    popProcessQueueTable();
-                    //Incert in process table
-                    updateProcessTable( processQueueName, processQueueStartTime, processQueueDuration);
-                }
-            }
-            // Generate new headers dynamically
-            planificatorHeaders[0] = "P";
-            for (int i = 1; i < 11; i++) {
-                planificatorHeaders[i] = String.valueOf((currentTime + i-1));
-            }
-            // Apply new headers
-            tablePlanificator.setColumnIdentifiers(planificatorHeaders);
-            updatePlanificatorTable();
-            currentTime++;
-        } else {
-            //Check extra time if no process enter
-            timer.cancel(); // Stop after 10 updates
-            stopServer();
-            initServerButton.setEnabled(true);
-            antTime += currentTime;
-        }
-    }
-    
     private void updatePlanificatorTable(){
+        planificatorHeaders[0] = "P";
+        for (int i = 1; i < 11; i++) {
+            planificatorHeaders[i] = String.valueOf((currentTime + i-1));
+        }
         Object[][] tableData = getPlanificatorTableData();
         for (int row = 0; row < tableData.length; row++) {
             for (int col = 1; col < tableData[row].length; col++) {
@@ -322,7 +353,7 @@ public class ServerGUI extends javax.swing.JFrame {
             return;
         }
 
-        System.out.println("=== CONTENIDO DE LA TABLA DEL PLANIFICADOR ===");
+        System.out.println("=== CONTENIDO DE LA TABLA DEL PLANIFICADOR "+currentTime+" ===");
         System.out.print("HEADERS: \t");
         for (int i = 1; i < 11; i++) {
                 System.out.print(currentTime + i-1 + "  \t");
