@@ -28,7 +28,8 @@ public class ServerGUI extends javax.swing.JFrame {
     private DefaultTableModel tablePlanificator;
     private DefaultTableModel tableProcess;
     private DefaultTableModel tableQueue;
-    private DefaultTableModel tableWaitingTime; 
+    private DefaultTableModel tableWaitingTime;
+    private DefaultTableModel tableCompletionTime;
     private final List<String> processNames = List.of("A", "B", "C", "D", "E");
     private int antTime = 10;
     private final String[] planificatorHeaders = new String[11];
@@ -46,6 +47,7 @@ public class ServerGUI extends javax.swing.JFrame {
         initProcessTable();
         initQueueTable();
         initWaitingTimeTable();
+        initCompletionTimeTable();
         
     }
  
@@ -134,7 +136,7 @@ public class ServerGUI extends javax.swing.JFrame {
         updateWaitingTimeTable();
 
         // 3. Actualizar otras tablas
-        //updateProcessTables();
+        updateCompletionTimeTable();
 
         // 4. Incrementar tiempo
         currentTime++;
@@ -272,6 +274,60 @@ public class ServerGUI extends javax.swing.JFrame {
         }
     }
     
+    //Tiempo de finalizacion
+    private void updateCompletionTimeTable() {
+        // 1. Limpiar la tabla (Borramos las 18 filas para repintar)
+        for (int i = 0; i < tableCompletionTime.getRowCount(); i++) {
+            tableCompletionTime.setValueAt(null, i, 0);
+            tableCompletionTime.setValueAt(null, i, 1);
+        }
+        
+        double totalFinalizacion = 0;
+        int contadorProcesos = 0;
+    
+       // 2. Recorrer TODOS los procesos completados
+        for (int i = 0; i < completedProcesses.size(); i++) {
+            String proceso = completedProcesses.get(i);
+        
+            if (processArrivalTime.containsKey(proceso) && 
+                processStartTime.containsKey(proceso) && 
+                processDuration.containsKey(proceso)) {
+            
+                // --- CÁLCULOS ---
+                int arrival = processArrivalTime.get(proceso);
+                int start = processStartTime.get(proceso);
+                int duration = processDuration.get(proceso); // t
+            
+                int E = start - arrival; // Tiempo de espera
+                int F = duration + E;    // F = t + E
+            
+                // Sumar para el promedio
+                totalFinalizacion += F;
+                contadorProcesos++;
+            
+                // Escribir en la tabla (Fila i)
+                // Aseguramos no salirnos del rango de la tabla
+                if (i < tableCompletionTime.getRowCount()) {
+                    tableCompletionTime.setValueAt(proceso, i, 0);
+                    tableCompletionTime.setValueAt(F, i, 1);
+                }
+            }
+        }
+        
+        // 3. Calcular y mostrar la Media
+        if (contadorProcesos > 0) {
+            double media = totalFinalizacion / contadorProcesos;
+        
+            // Colocamos la media en la fila siguiente al último proceso
+            // Verificamos que no nos salgamos del límite de la tabla
+            if (contadorProcesos < tableCompletionTime.getRowCount()) {
+                tableCompletionTime.setValueAt("Media", contadorProcesos, 0);
+                tableCompletionTime.setValueAt(String.format("%.2f", media), contadorProcesos, 1);
+            }
+        }
+    }
+    
+    
     //Clase para el manejo de la recepcion de procesos
     public static class ProcessHandler {
         private static ServerGUI gui;
@@ -360,6 +416,17 @@ public class ServerGUI extends javax.swing.JFrame {
         Object[][] data = new Object[6][4]; // 4 filas, 4 columnas
         tableWaitingTime = new DefaultTableModel(data, columns);
         jTable5.setModel(tableWaitingTime);
+    }
+    
+    private void initCompletionTimeTable() {
+    String[] columns = new String[2];
+    columns[0] = "Proceso";
+    columns[1] = "Tiempo de finalización"; // <--- Etiqueta corregida
+    
+    // Inicializamos con 6 filas vacías
+    Object[][] data = new Object[6][2]; 
+    tableCompletionTime = new DefaultTableModel(data, columns);
+    jTable6.setModel(tableCompletionTime);
     }
     
     private void initPlanificatorTable() {
