@@ -30,6 +30,10 @@ public class ServerGUI extends javax.swing.JFrame {
     private DefaultTableModel tableQueue;
     private DefaultTableModel tableWaitingTime;
     private DefaultTableModel tableCompletionTime;
+    
+    private DefaultTableModel tablePenalty;
+
+    
     private final List<String> processNames = List.of("A", "B", "C", "D", "E");
     private int antTime = 10;
     private final String[] planificatorHeaders = new String[11];
@@ -48,6 +52,8 @@ public class ServerGUI extends javax.swing.JFrame {
         initQueueTable();
         initWaitingTimeTable();
         initCompletionTimeTable();
+        initPenaltyTable();
+
         
     }
  
@@ -137,6 +143,9 @@ public class ServerGUI extends javax.swing.JFrame {
 
         // 3. Actualizar otras tablas
         updateCompletionTimeTable();
+        
+        updatePenaltyTable();
+
 
         // 4. Incrementar tiempo
         currentTime++;
@@ -327,6 +336,64 @@ public class ServerGUI extends javax.swing.JFrame {
         }
     }
     
+    private void initPenaltyTable() {
+        String[] columns = new String[2];
+        columns[0] = "Proceso";
+        columns[1] = "Penalización (P)";
+
+        Object[][] data = new Object[6][2];
+        tablePenalty = new DefaultTableModel(data, columns);
+        jTable2.setModel(tablePenalty);
+    }
+
+    private void updatePenaltyTable() {
+
+        // Limpiar tabla
+        for (int i = 0; i < tablePenalty.getRowCount(); i++) {
+            tablePenalty.setValueAt(null, i, 0);
+            tablePenalty.setValueAt(null, i, 1);
+        }
+
+        double totalP = 0;
+        int count = 0;
+
+        for (int i = 0; i < completedProcesses.size(); i++) {
+
+            String proceso = completedProcesses.get(i);
+
+            if (processArrivalTime.containsKey(proceso) &&
+                processStartTime.containsKey(proceso) &&
+                processDuration.containsKey(proceso)) {
+
+                int arrival = processArrivalTime.get(proceso);
+                int start = processStartTime.get(proceso);
+                int t = processDuration.get(proceso);
+
+                int E = start - arrival;   // Tiempo de espera
+                int F = t + E;             // Finalización
+                double P = (double) F / t; // Penalización
+
+                totalP += P;
+                count++;
+
+                if (i < tablePenalty.getRowCount()) {
+                    tablePenalty.setValueAt(proceso, i, 0);
+                    tablePenalty.setValueAt(String.format("%.2f", P), i, 1);
+                }
+            }
+        }
+
+        // MEDIA
+        if (count > 0) {
+            double media = totalP / count;
+
+            if (count < tablePenalty.getRowCount()) {
+                tablePenalty.setValueAt("Media", count, 0);
+                tablePenalty.setValueAt(String.format("%.2f", media), count, 1);
+            }
+        }
+    }
+
     
     //Clase para el manejo de la recepcion de procesos
     public static class ProcessHandler {
