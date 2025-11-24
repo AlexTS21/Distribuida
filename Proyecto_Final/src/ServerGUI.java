@@ -215,73 +215,70 @@ public class ServerGUI extends javax.swing.JFrame {
     
     
     private void calculateWaitingTime(String processName) {
-        if (processArrivalTime.containsKey(processName) && processStartTime.containsKey(processName)) {
-            int t = processArrivalTime.get(processName);
-            int F = processStartTime.get(processName);
-            int E = F - t;
-            
-            // Agregar a lista de procesos completados si no está
-            if (!completedProcesses.contains(processName)) {
-                completedProcesses.add(processName);
-            }
-            
-            System.out.println("Proceso " + processName + " - T. Espera: " + E);
+    if (processArrivalTime.containsKey(processName) && 
+        processStartTime.containsKey(processName) && 
+        processDuration.containsKey(processName)) {
+        
+        //Variables de la formula 
+        int arrival = processArrivalTime.get(processName);
+        int start = processStartTime.get(processName);    
+        int t = processDuration.get(processName);          
+        
+        //Tiempo de espera
+        int E = start - arrival;
+        
+        // Agregar a lista de procesos completados
+        if (!completedProcesses.contains(processName)) {
+            completedProcesses.add(processName);
+        }
+    }
+}
+    
+    private void updateWaitingTimeTable() {
+    // Limpiar tabla
+    for (int i = 0; i < tableWaitingTime.getRowCount(); i++) {
+        for (int j = 0; j < tableWaitingTime.getColumnCount(); j++) {
+            tableWaitingTime.setValueAt(null, i, j);
         }
     }
     
-    private void updateWaitingTimeTable() {
-        // Limpiar tabla
-        for (int i = 0; i < tableWaitingTime.getRowCount(); i++) {
-            for (int j = 0; j < tableWaitingTime.getColumnCount(); j++) {
-                tableWaitingTime.setValueAt(null, i, j);
-            }
-        }
+    //Variables para calcular promedio
+    double totalEspera = 0;
+    int contadorProcesos = 0;
+    
+    //Llenar tabla con E = Inicio - Llegada
+    for (int i = 0; i < completedProcesses.size(); i++) {
+        String proceso = completedProcesses.get(i);
         
-        // Calcular suma para el promedio
-        int totalTiempo = 0;
-        int processCount = completedProcesses.size();
-        
-        // Llenar tabla con procesos completados
-        for (int i = 0; i < completedProcesses.size() && i < 6; i++) {
-            String proceso = completedProcesses.get(i);
-            if (processArrivalTime.containsKey(proceso) && processStartTime.containsKey(proceso)) {
-                int t = processArrivalTime.get(proceso);
-                int F = processStartTime.get(proceso);
-                int E = F - t;
-                totalTiempo += E;
-                
-                // Columna 1: Nombre del proceso
+        if (processArrivalTime.containsKey(proceso) && 
+            processStartTime.containsKey(proceso)) {
+            
+            //Cálculo simple y correcto
+            int arrival = processArrivalTime.get(proceso);
+            int start = processStartTime.get(proceso);     
+            int E = start - arrival;  // Espera = Inicio - Llegada
+            
+            totalEspera += E;
+            contadorProcesos++;
+            
+            //Escribir en la tabla
+            if (i < tableWaitingTime.getRowCount()) {
                 tableWaitingTime.setValueAt(proceso, i, 0);
-                // Columna 2: Tiempo de espera
                 tableWaitingTime.setValueAt(E, i, 1);
-                
-                // Si hay más de 6 procesos, usar columnas 3 y 4
-                if (i + 6 < completedProcesses.size() && i < 6) {
-                    String proceso2 = completedProcesses.get(i + 6);
-                    if (processArrivalTime.containsKey(proceso2) && processStartTime.containsKey(proceso2)) {
-                        int t2 = processArrivalTime.get(proceso2);
-                        int F2 = processStartTime.get(proceso2);
-                        int E2 = F2 - t2;
-                        totalTiempo += E2;
-                        processCount++;
-                        
-                        // Columna 3: Nombre del proceso
-                        tableWaitingTime.setValueAt(proceso2, i, 2);
-                        // Columna 4: Tiempo de espera
-                        tableWaitingTime.setValueAt(E2, i, 3);
-                    }
-                }
             }
-        }
-        
-        // Calcular y mostrar promedio si hay procesos
-        if (processCount > 0) {
-            double averageWaitingTime = (double) totalTiempo / processCount;
-            int lastRow = Math.min(6, completedProcesses.size());
-            tableWaitingTime.setValueAt("Media", lastRow, 0);
-            tableWaitingTime.setValueAt(String.format("%.2f", averageWaitingTime), lastRow, 1);
         }
     }
+    
+    //Calcular y mostrar la media
+    if (contadorProcesos > 0) {
+        double media = totalEspera / contadorProcesos;
+        
+        if (contadorProcesos < tableWaitingTime.getRowCount()) {
+            tableWaitingTime.setValueAt("Media", contadorProcesos, 0);
+            tableWaitingTime.setValueAt(String.format("%.2f", media), contadorProcesos, 1);
+        }
+    }
+}
     
     //Tiempo de finalizacion
     private void updateCompletionTimeTable() {
@@ -475,15 +472,13 @@ public class ServerGUI extends javax.swing.JFrame {
     
     
     private void initWaitingTimeTable() {
-        String[] columns = new String[4];
-        columns[0] = "Proceso";
-        columns[1] = "T. Espera";
-        columns[2] = "Proceso";
-        columns[3] = "T. Espera";
-        Object[][] data = new Object[6][4]; // 4 filas, 4 columnas
-        tableWaitingTime = new DefaultTableModel(data, columns);
-        jTable5.setModel(tableWaitingTime);
-    }
+    String[] columns = new String[2];
+    columns[0] = "Proceso";
+    columns[1] = "T. Espera";
+    Object[][] data = new Object[6][2]; 
+    tableWaitingTime = new DefaultTableModel(data, columns);
+    jTable5.setModel(tableWaitingTime);
+}
     
     private void initCompletionTimeTable() {
     String[] columns = new String[2];
