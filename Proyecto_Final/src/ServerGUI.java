@@ -7,6 +7,9 @@ import javax.swing.table.DefaultTableModel;
 import org.apache.xmlrpc.server.PropertyHandlerMapping;
 import org.apache.xmlrpc.server.XmlRpcServer;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -25,10 +28,16 @@ public class ServerGUI extends javax.swing.JFrame {
     private DefaultTableModel tablePlanificator;
     private DefaultTableModel tableProcess;
     private DefaultTableModel tableQueue;
+    private DefaultTableModel tableWaitingTime; 
     private final List<String> processNames = List.of("A", "B", "C", "D", "E");
     private int antTime = 10;
     private final String[] planificatorHeaders = new String[11];
     private final int actualizationTime = 4000;
+    
+    private Map<String, Integer> processArrivalTime = new HashMap<>();
+    private Map<String, Integer> processStartTime = new HashMap<>();
+    private Map<String, Integer> processDuration = new HashMap<>();
+    private List<String> completedProcesses = new ArrayList<>();
     
     //Inicializadores de interfaz grafica
     public ServerGUI() {
@@ -36,6 +45,8 @@ public class ServerGUI extends javax.swing.JFrame {
         initPlanificatorTable();
         initProcessTable();
         initQueueTable();
+        initWaitingTimeTable();
+        
     }
  
     public static void main(String args[]) {
@@ -120,6 +131,7 @@ public class ServerGUI extends javax.swing.JFrame {
 
         // 2. Procesar cola de espera
         processQueue();
+        updateWaitingTimeTable();
 
         // 3. Actualizar otras tablas
         //updateProcessTables();
@@ -157,6 +169,8 @@ public class ServerGUI extends javax.swing.JFrame {
             int processQueueStartTime = (int) tableQueue.getValueAt(0, 2);
             int processQueueDuration = (int) tableQueue.getValueAt(0, 3);
             if(checkProcess(processQueueName ,processQueueStartTime , processQueueDuration)){
+                
+                processStartTime.put(processQueueName, currentTime + processQueueStartTime);
                 //Draw new process
                 int index = processNames.indexOf(processQueueName);
                 //Draw proceess if thre resource is avalible
@@ -168,6 +182,8 @@ public class ServerGUI extends javax.swing.JFrame {
                 popProcessQueueTable();
                 //Incert in process table
                 updateProcessTable( processQueueName, processQueueStartTime, processQueueDuration);
+                
+                calculateWaitingTime(processQueueName);
             }
         }
     }
@@ -186,6 +202,76 @@ public class ServerGUI extends javax.swing.JFrame {
         return true;
     }
     
+    
+    private void calculateWaitingTime(String processName) {
+        if (processArrivalTime.containsKey(processName) && processStartTime.containsKey(processName)) {
+            int t = processArrivalTime.get(processName);
+            int F = processStartTime.get(processName);
+            int E = F - t;
+            
+            // Agregar a lista de procesos completados si no está
+            if (!completedProcesses.contains(processName)) {
+                completedProcesses.add(processName);
+            }
+            
+            System.out.println("Proceso " + processName + " - T. Espera: " + E);
+        }
+    }
+    
+    private void updateWaitingTimeTable() {
+        // Limpiar tabla
+        for (int i = 0; i < tableWaitingTime.getRowCount(); i++) {
+            for (int j = 0; j < tableWaitingTime.getColumnCount(); j++) {
+                tableWaitingTime.setValueAt(null, i, j);
+            }
+        }
+        
+        // Calcular suma para el promedio
+        int totalTiempo = 0;
+        int processCount = completedProcesses.size();
+        
+        // Llenar tabla con procesos completados
+        for (int i = 0; i < completedProcesses.size() && i < 6; i++) {
+            String proceso = completedProcesses.get(i);
+            if (processArrivalTime.containsKey(proceso) && processStartTime.containsKey(proceso)) {
+                int t = processArrivalTime.get(proceso);
+                int F = processStartTime.get(proceso);
+                int E = F - t;
+                totalTiempo += E;
+                
+                // Columna 1: Nombre del proceso
+                tableWaitingTime.setValueAt(proceso, i, 0);
+                // Columna 2: Tiempo de espera
+                tableWaitingTime.setValueAt(E, i, 1);
+                
+                // Si hay más de 6 procesos, usar columnas 3 y 4
+                if (i + 6 < completedProcesses.size() && i < 6) {
+                    String proceso2 = completedProcesses.get(i + 6);
+                    if (processArrivalTime.containsKey(proceso2) && processStartTime.containsKey(proceso2)) {
+                        int t2 = processArrivalTime.get(proceso2);
+                        int F2 = processStartTime.get(proceso2);
+                        int E2 = F2 - t2;
+                        totalTiempo += E2;
+                        processCount++;
+                        
+                        // Columna 3: Nombre del proceso
+                        tableWaitingTime.setValueAt(proceso2, i, 2);
+                        // Columna 4: Tiempo de espera
+                        tableWaitingTime.setValueAt(E2, i, 3);
+                    }
+                }
+            }
+        }
+        
+        // Calcular y mostrar promedio si hay procesos
+        if (processCount > 0) {
+            double averageWaitingTime = (double) totalTiempo / processCount;
+            int lastRow = Math.min(6, completedProcesses.size());
+            tableWaitingTime.setValueAt("Media", lastRow, 0);
+            tableWaitingTime.setValueAt(String.format("%.2f", averageWaitingTime), lastRow, 1);
+        }
+    }
+    
     //Clase para el manejo de la recepcion de procesos
     public static class ProcessHandler {
         private static ServerGUI gui;
@@ -198,6 +284,8 @@ public class ServerGUI extends javax.swing.JFrame {
             int serverTime = gui.currentTime;
             int initTime = serverTime + startTime;
             int endTime = initTime + duration -1;
+            gui.processArrivalTime.put(name, serverTime);
+            gui.processDuration.put(name, duration);
             
             gui.messageLabel.setText("Proceso recibido (" + serverTime + "): " + name + " inicia en: " + initTime
             + " termina en: " + endTime);
@@ -208,7 +296,9 @@ public class ServerGUI extends javax.swing.JFrame {
             
             //check if process can be in planificator
             if (gui.checkProcess(name, startTime, duration)){
+                gui.processStartTime.put(name, initTime);
                 gui.updateProcessTable(name, startTime, duration);
+                
             
                 SwingUtilities.invokeLater(() -> {
                     int index = gui.processNames.indexOf(name);
@@ -219,6 +309,7 @@ public class ServerGUI extends javax.swing.JFrame {
                         gui.tablePlanificator.setValueAt("o", index, i);
                     }
                 });
+                gui.calculateWaitingTime(name);
                 return "Proceso " + name + " recibido. Inicia en " + initTime + ", termina en " + endTime;
             }//Check if queue of process if avalible to insert
             else{
@@ -257,6 +348,18 @@ public class ServerGUI extends javax.swing.JFrame {
         }
         tableQueue = new DefaultTableModel(data, columns);
         jTable4.setModel(tableQueue);
+    }
+    
+    
+    private void initWaitingTimeTable() {
+        String[] columns = new String[4];
+        columns[0] = "Proceso";
+        columns[1] = "T. Espera";
+        columns[2] = "Proceso";
+        columns[3] = "T. Espera";
+        Object[][] data = new Object[6][4]; // 4 filas, 4 columnas
+        tableWaitingTime = new DefaultTableModel(data, columns);
+        jTable5.setModel(tableWaitingTime);
     }
     
     private void initPlanificatorTable() {
@@ -392,7 +495,7 @@ public class ServerGUI extends javax.swing.JFrame {
      * regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">                          
     private void initComponents() {
 
         jPanel1 = new javax.swing.JPanel();
@@ -647,16 +750,16 @@ public class ServerGUI extends javax.swing.JFrame {
         );
 
         pack();
-    }// </editor-fold>//GEN-END:initComponents
+    }// </editor-fold>                        
     
     //Buttons actions
-    private void initServerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_initServerButtonActionPerformed
+    private void initServerButtonActionPerformed(java.awt.event.ActionEvent evt) {                                                 
         // TODO add your handling code here:
         initServerButton.setEnabled(false); // Desactivar
         startServer();
-    }//GEN-LAST:event_initServerButtonActionPerformed
+    }                                                
     
-    // Variables declaration - do not modify//GEN-BEGIN:variables
+    // Variables declaration - do not modify                     
     private javax.swing.JButton initServerButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
@@ -680,5 +783,5 @@ public class ServerGUI extends javax.swing.JFrame {
     private javax.swing.JTable jTable5;
     private javax.swing.JTable jTable6;
     private javax.swing.JLabel messageLabel;
-    // End of variables declaration//GEN-END:variables
+    // End of variables declaration                   
 }
