@@ -1,17 +1,30 @@
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
+import java.net.URL;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 public class ClientGUI extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(ClientGUI.class.getName());
-
+    
+    private XmlRpcClient client;
+    private DefaultTableModel modeloTabla;
     /**
      * Creates new form ClientGUI
      */
     public ClientGUI() {
-        initComponents();
+         initComponents();
+        inicializarTabla();
     }
-
+    
+        private void inicializarTabla() {
+        modeloTabla = new DefaultTableModel(
+            new Object[]{"Proceso", "C", "T", "Estado"}, 0
+        );
+        jTable1.setModel(modeloTabla);
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -185,7 +198,21 @@ public class ClientGUI extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        // TODO add your handling code here:
+         try {
+            XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
+            config.setServerURL(new URL("http://localhost:8080/"));
+
+            client = new XmlRpcClient();
+            client.setConfig(config);
+
+            jLabel9.setText("Conectado al servidor ");
+        } catch (Exception e) {
+            jLabel9.setText("Error al conectar ");
+            JOptionPane.showMessageDialog(this, 
+                "No se pudo conectar al servidor",
+                "Error", JOptionPane.ERROR_MESSAGE
+            );
+        }
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jTextField2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField2ActionPerformed
@@ -193,7 +220,109 @@ public class ClientGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_jTextField2ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        // TODO add your handling code here:
+        if (client == null) {
+        JOptionPane.showMessageDialog(this, "Primero conecta el cliente.", "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+
+    // leer datos del formulario 
+    String nombre = jTextField2.getText().trim();
+    int c, t;
+    try {
+        c = Integer.parseInt(jTextField1.getText().trim());
+        t = Integer.parseInt(jTextField3.getText().trim());
+    } catch (NumberFormatException ex) {
+        JOptionPane.showMessageDialog(this, "C y T deben ser números enteros.");
+        return;
+    }
+
+    if (nombre.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Debe ingresar el nombre del proceso.");
+        return;
+    }
+
+    Object[] params = new Object[]{nombre, c, t};
+
+    // Ejecutar en hilo separado para no bloquear la UI
+    new Thread(() -> {
+        final int MAX_INTENTOS = 3;
+        boolean enviado = false;
+        String lastResponse = "";
+
+        for (int intento = 1; intento <= MAX_INTENTOS && !enviado; intento++) {
+            try {
+                // Llamada RPC 
+                String response = (String) client.execute("process.sendProcess", params);
+                lastResponse = response == null ? "" : response;
+
+                // pasaar todo a minuscilas para que no aya errores
+                String respLower = lastResponse.toLowerCase();
+
+                // aqui el servidor explícitamente dice que está lleno o que entró a cola
+                // lo que se hace es como "espera" si el servidor devuelve "lleno" o "cola" o "entró en la cola"
+                boolean indicaLleno = respLower.contains("lleno")
+                                      || respLower.contains("cola de espera")
+                                      || respLower.contains("entro en la cola")
+                                      || respLower.contains("cola");
+
+                // CASO: servidor aceptó / programó el proceso 
+                boolean indicaAceptado = respLower.contains("recibido")
+                                        || respLower.contains("inicia en")
+                                        || respLower.contains("aceptado")
+                                        || respLower.contains("inicia");
+
+                if (indicaAceptado) {
+                    enviado = true;
+                    final String msg = "Servidor: " + lastResponse;
+                    SwingUtilities.invokeLater(() -> {
+                        jLabel9.setText(msg);
+                        modeloTabla.addRow(new Object[]{nombre, c, t, "Enviado"});
+                    });
+                    break; // salir del bucle
+                } else if (indicaLleno) {
+                    final int intentoLocal = intento;
+                    SwingUtilities.invokeLater(() -> jLabel9.setText("EN ESPERA (" + intentoLocal + " / 5)"));
+
+                    // Esperar 5 segundos antes del próximo intento
+                    try {
+                        Thread.sleep(5000L);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+
+                    // en el siguiente ciclo se reintentará
+                } else {
+                    // Respuesta inesperada
+                    final String msg = "Servidor: " + lastResponse;
+                    SwingUtilities.invokeLater(() -> jLabel9.setText(msg));
+                    // aquí no reintentamos inmediatamente, salimos
+                    break;
+                }
+
+            } catch (Exception ex) {
+                // Problema de comunicacin mostrar y reintentar después de 5s
+                ex.printStackTrace();
+                final int intentoLocal = intento;
+                SwingUtilities.invokeLater(() -> jLabel9.setText("Error conexión (int " + intentoLocal + ")"));
+                try {
+                    Thread.sleep(5000L);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        }
+
+        // Si no enviado después de todos los intentos, actualizar UI
+        if (!enviado) {
+            SwingUtilities.invokeLater(() -> {
+                jLabel9.setText("NO ENVIADO (Servidor ocupado)");
+                modeloTabla.addRow(new Object[]{nombre, c, t, "No enviado"});
+            });
+        }
+
+    }).start();
     }//GEN-LAST:event_jButton3ActionPerformed
 
     /**
