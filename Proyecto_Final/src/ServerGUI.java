@@ -39,7 +39,7 @@ public class ServerGUI extends javax.swing.JFrame {
     private final List<String> processNames = List.of("A", "B", "C", "D", "E");
     private int antTime = 10;
     private final String[] planificatorHeaders = new String[11];
-    private final int actualizationTime = 4000;
+    private final int actualizationTime = 1000;
     private int desconectionInactivityTime = 5;
     
     private Map<String, Integer> processArrivalTime = new HashMap<>();
@@ -235,6 +235,7 @@ public class ServerGUI extends javax.swing.JFrame {
             return false;
         //Check if duration dont excede planificator resource
         }else if(initTime+durationTime > 10){
+            messageLabel.setText("Proceso " + processName + " excede la capacidad del servidor" + "c: " + initTime + "d: "+ durationTime);
             System.out.println("DURATION PLUS INIT: "+ initTime + " "+ durationTime);
             return false;
         }
@@ -435,6 +436,9 @@ public class ServerGUI extends javax.swing.JFrame {
                 }
         
         public String sendProcess(String name, int startTime, int duration) {
+            if (startTime + duration > 10){
+                return "Proceso excede las capacidades del planificador";
+            }
             int serverTime = gui.currentTime;
             int initTime = serverTime + startTime;
             int endTime = initTime + duration -1;
@@ -601,6 +605,7 @@ public class ServerGUI extends javax.swing.JFrame {
         }
         return true;
     }
+    
     private void updatePlanificatorTable(){
         planificatorHeaders[0] = "P";
         for (int i = 1; i < 11; i++) {
