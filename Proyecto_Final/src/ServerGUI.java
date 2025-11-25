@@ -40,7 +40,7 @@ public class ServerGUI extends javax.swing.JFrame {
     private int antTime = 10;
     private final String[] planificatorHeaders = new String[11];
     private final int actualizationTime = 4000;
-    private final int desconectionInactivityTime = 0;
+    private int desconectionInactivityTime = 5;
     
     private Map<String, Integer> processArrivalTime = new HashMap<>();
     private Map<String, Integer> processStartTime = new HashMap<>();
@@ -95,6 +95,7 @@ public class ServerGUI extends javax.swing.JFrame {
             xmlRpcServer.setHandlerMapping(phm);
 
             rpcServer.start();
+            desconectionInactivityTime = 5;
             messageLabel.setText("Servidor RPC iniciado en el puerto " + port);
 
             startTimer();
@@ -144,6 +145,7 @@ public class ServerGUI extends javax.swing.JFrame {
     //Intentar sacar procesos de la cola
     //Actualizar timer aqui
     private void executeMainLogic() {
+        System.out.println("CONTADOR DE INACTIVIAD: " +desconectionInactivityTime);
         // 1. Actualizar headers de la tabla
         updatePlanificatorTable();
 
@@ -170,17 +172,31 @@ public class ServerGUI extends javax.swing.JFrame {
         initServerButton.setEnabled(true);
 
         // Extender el tiempo para el próximo ciclo
-        antTime += currentTime;
+        //antTime += currentTime;
 
         // Mostrar mensaje al usuario
-        messageLabel.setText("Ciclo de planificación completado. Servidor en pausa.");
+        messageLabel.setText("Servidor desconectado.");
 
         // Log para debugging
-        logger.info("Timer completado. CurrentTime: " + currentTime + ", antTime: " + antTime);
+        logger.info("Timer completado. CurrentTime: " + currentTime);
     }
     
+    //Esperar 5 tiempos antes de cerrar el servidor
     private boolean shouldContinueTimer() {
-        return currentTime <= antTime;
+        //Revisar si la tabla ya esta vacia
+        //Esperar 5 unidades de tiempo para desconectar al servidor si tabla y cola estan vaicias decrementar desconectionInactivityTime
+        
+        if (isQueueTableEmpy() && isPlanificatorTableEmpy()){
+            messageLabel.setText("Esperando procesos antes de desconectar.");
+            desconectionInactivityTime = desconectionInactivityTime-1;
+        }
+        if (desconectionInactivityTime<0){
+            System.out.println("Cerro server");
+            return false;
+        }
+        
+        
+        return true;
     }
 
     //Manejo de cola de procesos-----------------------------------------------------------------------
@@ -219,6 +235,7 @@ public class ServerGUI extends javax.swing.JFrame {
             return false;
         //Check if duration dont excede planificator resource
         }else if(initTime+durationTime > 10){
+            System.out.println("DURATION PLUS INIT: "+ initTime + " "+ durationTime);
             return false;
         }
         return true;
@@ -433,6 +450,7 @@ public class ServerGUI extends javax.swing.JFrame {
             
             //check if process can be in planificator
             if (gui.checkProcess(name, startTime, duration)){
+                gui.desconectionInactivityTime = 5;
                 gui.processStartTime.put(name, initTime);
                 gui.updateProcessTable(name, startTime, duration);
                 
@@ -572,6 +590,17 @@ public class ServerGUI extends javax.swing.JFrame {
         return false;
     }
     
+    private boolean isPlanificatorTableEmpy(){
+        Object[][] tableData = getPlanificatorTableData();
+        for (int row = 0; row < tableData.length; row++) {
+            for (int col = 1; col < tableData[row].length; col++) {
+                if (tableData[row][col] != null){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
     private void updatePlanificatorTable(){
         planificatorHeaders[0] = "P";
         for (int i = 1; i < 11; i++) {
