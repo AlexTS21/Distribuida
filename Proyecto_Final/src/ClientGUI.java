@@ -1,3 +1,4 @@
+import java.awt.Color;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 import java.net.URL;
@@ -198,21 +199,33 @@ public class ClientGUI extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-         try {
-            XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
-            config.setServerURL(new URL("http://localhost:8080/"));
+        try {
+        XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
+        config.setServerURL(new URL("http://localhost:8080/"));
 
-            client = new XmlRpcClient();
-            client.setConfig(config);
+        XmlRpcClient testClient = new XmlRpcClient();
+        testClient.setConfig(config);
 
-            jLabel9.setText("Conectado al servidor ");
-        } catch (Exception e) {
-            jLabel9.setText("Error al conectar ");
-            JOptionPane.showMessageDialog(this, 
-                "No se pudo conectar al servidor",
-                "Error", JOptionPane.ERROR_MESSAGE
-            );
+        // ✅ Cambiar de "server.ping" a "process.ping"
+        String response = (String) testClient.execute("process.ping", new Object[]{});
+
+        if (response.equals("OK")) {
+            this.client = testClient;
+            jLabel9.setForeground(Color.WHITE);        // Texto blanco
+             jLabel9.setBackground(Color.GREEN);        // Fondo verde
+             jLabel9.setOpaque(true); 
         }
+
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this,
+                "No se pudo conectar al servidor.\nVerifica que esté encendido.",
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+    }  
+         
+         
+         
+         
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jTextField2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField2ActionPerformed

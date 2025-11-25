@@ -15,6 +15,8 @@ import java.util.Map;
  *
  * @author aleja
  */
+
+
 public class ServerGUI extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(ServerGUI.class.getName());
@@ -44,6 +46,8 @@ public class ServerGUI extends javax.swing.JFrame {
     private Map<String, Integer> processDuration = new HashMap<>();
     private List<String> completedProcesses = new ArrayList<>();
     
+    
+   
     //Inicializadores de interfaz grafica
     public ServerGUI() {
         initComponents();
@@ -85,6 +89,7 @@ public class ServerGUI extends javax.swing.JFrame {
             // Pasar la instancia del GUI a la clase estática
             ProcessHandler.setGUI(this);
             phm.addHandler("process", ProcessHandler.class);
+           
 
             xmlRpcServer.setHandlerMapping(phm);
 
@@ -98,6 +103,10 @@ public class ServerGUI extends javax.swing.JFrame {
             messageLabel.setText("Error al iniciar servidor");
         }
     }
+    
+     public String ping() {
+    return "OK";
+}
     
     private void stopServer() {
         if (rpcServer != null) {
@@ -394,11 +403,17 @@ public class ServerGUI extends javax.swing.JFrame {
     
     //Clase para el manejo de la recepcion de procesos
     public static class ProcessHandler {
+        
+       
         private static ServerGUI gui;
 
         public static void setGUI(ServerGUI instance) {
             gui = instance;
         }
+        
+          public String ping() {
+            return "OK";
+                }
         
         public String sendProcess(String name, int startTime, int duration) {
             int serverTime = gui.currentTime;
