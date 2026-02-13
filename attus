@@ -1,0 +1,243 @@
+[33mcommit ab80ccc61552fc2de3139ae7a3c3c501d2b60ca4[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdev[m[33m, [m[1;31morigin/dev[m[33m)[m
+Author: Alejandro Tejeda <alejanafs28@gmail.com>
+Date:   Thu Nov 20 17:21:36 2025 -0600
+
+    Organice el codigo de la interfaz para que sean mas faciles de encontrar las funiones2
+
+[33mcommit 5020ef6389ff0434c01dff12d55441fea6c694e9[m
+Author: Alejandro Tejeda <alejanafs28@gmail.com>
+Date:   Thu Nov 20 17:09:43 2025 -0600
+
+    La tabla que muestra los procesos que llegan ya se actualiza colocando los procesos que estan en el planificador
+
+[33mcommit 33316214d47fd88ca6daed127f9911b0a9db2443[m
+Author: Alejandro Tejeda <alejanafs28@gmail.com>
+Date:   Thu Nov 20 16:57:21 2025 -0600
+
+    Los procesos se pintan el el indice correcto del planificador, falta revisar si el proceso puede entrar al planificador
+
+[33mcommit 90be0f2e9a210d1710ce4e399a2c44c843f9857c[m
+Author: Alejandro Tejeda <alejanafs28@gmail.com>
+Date:   Wed Nov 19 19:40:41 2025 -0600
+
+    funcion para actualizar la tabla ya funciona, cliente en conosla que envia procesos de la A a la D
+
+[33mcommit 2e40d3ad9e7a6b66400856a072138c2bbbb1002b[m
+Author: Alejandro Tejeda <alejanafs28@gmail.com>
+Date:   Wed Nov 19 09:01:21 2025 -0600
+
+    Agregue contenido a las tablas de planificador y a la tabla de pocesos, el servidor se puede iniciar de nuevo una vez que pasaro 10 unidades de tiempo sin volver a empezar desde 0
+
+[33mcommit d74206d59d9b90137c52c64346e28f4279f6ee3f[m
+Author: Alejandro Tejeda <alejanafs28@gmail.com>
+Date:   Mon Nov 10 11:37:51 2025 -0600
+
+    Se agrego la parte del proyecto final el java, ya hay coneccion del servidor con cliente y actualizacion de la tabla
+
+[33mcommit 9e5ba2b7fb5949a83fbd95bb9514afedf5482c87[m
+Author: Alejandro Tejeda <alejanafs28@gmail.com>
+Date:   Wed Oct 29 21:46:54 2025 -0600
+
+    Se agregaron los codigos para la exposiion
+
+[33mcommit fd933d88557ea8df13df11201d72066036773dcb[m
+Author: Alejandro Tejeda <alejanafs28@gmail.com>
+Date:   Tue Oct 28 08:59:02 2025 -0600
+
+    Se agrego la interfaz del proyecto final a demas de que la tabla ya incrementa los indices junto con el servidor
+
+[33mcommit 918b38c8da14520af2deaba02a959bbbd4a73806[m
+Author: wronskiano183 <146133857+wronskiano183@users.noreply.github.com>
+Date:   Mon Oct 27 20:54:11 2025 -0600
+
+    proyecto prueba
+    
+    codigo posible
+
+[33mcommit de43a6e9412f5bf6ee2aa4500082a388486ffaa5[m
+Author: Alejandro Tejeda <alejanafs28@gmail.com>
+Date:   Tue Oct 21 07:40:26 2025 -0600
+
+    Se corrigio la seleccion para la sincronizacion de clientes del lado del servidor en la inrefaz
+
+[33mcommit 182f4fb8424b2a9b0195bf32037a0c6666fc90b1[m
+Author: SaulCz1 <saul.calitl@alumno.buap.mx>
+Date:   Mon Oct 20 19:59:39 2025 -0600
+
+    ahora si ya quedo xd
+
+[33mcommit a42dbd2ff5bbba17b60626a592a94ae2ac803b0b[m
+Author: SaulCz1 <saul.calitl@alumno.buap.mx>
+Date:   Mon Oct 20 19:56:54 2025 -0600
+
+    ahora si ya quedo
+
+[33mcommit 8d0e03b9896392cc59c4e3f2720dc2bda740f3eb[m
+Author: SaulCz1 <saul.calitl@alumno.buap.mx>
+Date:   Wed Oct 15 22:34:49 2025 -0600
+
+    interfaz de servidor
+
+[33mcommit 67c759e134a20a5df56ce7f91357379445997b71[m
+Author: joctan-maceda <joctanfail69858@gmail.com>
+Date:   Tue Oct 14 08:46:08 2025 -0600
+
+    Se hicieron cambios para cuando se cierra el servidor y para enviar que cliente hizo la ultima peticion en la practica Contador
+
+[33mcommit 1acb95a10a6616b79233075cd27e9b73905737e2[m
+Author: joctan-maceda <joctanfail69858@gmail.com>
+Date:   Tue Oct 14 01:23:57 2025 -0600
+
+    Agregue unos cambios al contador
+
+[33mcommit d345a383c20bedd2a62fef72293dfd53619336d4[m
+Author: DanielTecalero <daniel.jimenezte@alumno.buap.mx>
+Date:   Mon Oct 13 19:01:17 2025 -0600
+
+    Correccion de algunos fallos, pero aun hay detalles
+
+[33mcommit aef156fee50532dbc8efe691c318c160c512dc08[m
+Author: SaulCz1 <saul.calitl@alumno.buap.mx>
+Date:   Sun Oct 12 18:08:35 2025 -0600
+
+    RMI
+
+[33mcommit 0cfc18df94dcfd86db4097eae57deff4e0b44a97[m
+Author: SaulCz1 <144369881+SaulCz1@users.noreply.github.com>
+Date:   Sun Oct 12 16:53:12 2025 -0600
+
+    Delete RMI directory
+
+[33mcommit 3f32de0c6d281fd28dc1a580dfbf597af7c5aa5a[m
+Author: SaulCz1 <144369881+SaulCz1@users.noreply.github.com>
+Date:   Sun Oct 12 16:28:59 2025 -0600
+
+    Add files via upload
+
+[33mcommit 5d5f7561e804c5a99b82b1848c4e6ac82858b1dc[m
+Author: SaulCz1 <144369881+SaulCz1@users.noreply.github.com>
+Date:   Sun Oct 12 16:28:02 2025 -0600
+
+    Create .algo
+
+[33mcommit ee8f70b7c0831539d16ed727c88611d1999943a0[m
+Author: joctan-maceda <joctanfail69858@gmail.com>
+Date:   Thu Oct 9 12:47:33 2025 -0600
+
+    Se ajutsaron unos tiempos del servior, aun hay detalles para cerrarlo y falta poner que cliente hizo la ultima peticion
+
+[33mcommit 43d61181e0c6f3c80b6f1f42223bba83d9f75494[m
+Author: joctan-maceda <joctanfail69858@gmail.com>
+Date:   Thu Oct 9 11:27:34 2025 -0600
+
+    Se hicieron los arreglos, aun falta hacer que el servidor saque al cliente si no hay mas
+
+[33mcommit fddf827ae6287bfd105ef7534e92143d55fb2124[m
+Author: joctan-maceda <joctanfail69858@gmail.com>
+Date:   Thu Oct 9 10:49:00 2025 -0600
+
+    Se agrego un cambio para que se inicie cuando hay al menos 2 clientes
+
+[33mcommit 066de1ae3ef5fe7bc9f88df0b88a0ac98dc45928[m
+Author: joctan-maceda <joctanfail69858@gmail.com>
+Date:   Thu Oct 9 01:17:23 2025 -0600
+
+    Ahora si ya quedo, no tiene buen formato, pero sirve
+
+[33mcommit 3b2bae69a5b00d181ee75436b043a9e179c912b7[m
+Author: joctan-maceda <joctanfail69858@gmail.com>
+Date:   Thu Oct 9 00:53:14 2025 -0600
+
+    Ya se corrigieron los errores anteriores, aun falta hacer algunas correcciones, solo funciona Contador_Cliente
+
+[33mcommit 6a7531fedd9ba1599394b8797e48181197da3f64[m
+Author: joctan-maceda <joctanfail69858@gmail.com>
+Date:   Wed Oct 8 17:10:10 2025 -0600
+
+    Se agrego la Practica 3, aun falta
+
+[33mcommit db293a17e26354d06549dcfa16f5e89a1e114f05[m
+Author: joctan-maceda <joctanfail69858@gmail.com>
+Date:   Tue Oct 7 09:36:01 2025 -0600
+
+    Se eliminó duplicado
+
+[33mcommit c4c24468c746534a817c00e3c273ce44f9f9ee04[m
+Author: wronskiano183 <146133857+wronskiano183@users.noreply.github.com>
+Date:   Tue Oct 7 09:33:54 2025 -0600
+
+    Se agregaron los cambios de manejo de errores y de la divicion
+
+[33mcommit d2449e58d276c7fee0adb5d3e8c8d750eb97acb8[m
+Author: wronskiano183 <146133857+wronskiano183@users.noreply.github.com>
+Date:   Mon Oct 6 23:37:07 2025 -0600
+
+    ya se agregaron la ultima verificacion
+
+[33mcommit d66b9cafa950a7b7f00bd633310e92060f78a4c5[m
+Author: Alejandro Tejeda <alejanafs28@gmail.com>
+Date:   Mon Oct 6 20:00:50 2025 -0600
+
+    Se arreglo el error de divicion
+
+[33mcommit d8033281511668128d08f3c845327b43bc54fe7e[m
+Author: wronskiano183 <146133857+wronskiano183@users.noreply.github.com>
+Date:   Mon Oct 6 18:31:06 2025 -0600
+
+    version2
+
+[33mcommit 0f20c40a5376c61a598b15136c3402e8d39cca4a[m
+Author: wronskiano183 <146133857+wronskiano183@users.noreply.github.com>
+Date:   Tue Sep 30 16:27:54 2025 -0600
+
+    practica
+    
+    practica de servidor cliente
+
+[33mcommit a57150092ecad4e3d145067feaf99ab8813555c9[m
+Author: Alejandro Tejeda <alejanafs28@gmail.com>
+Date:   Mon Sep 29 07:19:56 2025 -0600
+
+    Se agergaron los cambios a la interfaz para mostrar la logica que se pidio
+
+[33mcommit d664420d159f1048315e3c3e045a1f0f947c36a4[m
+Author: Alejandro Tejeda <alejanafs28@gmail.com>
+Date:   Sat Sep 27 21:06:51 2025 -0600
+
+    Se corrgieron erroes de incercion y logica al combinar las dos soluciones
+
+[33mcommit ad023d780de77c67e231e5cc1d968f00f7668d53[m
+Author: Alejandro Tejeda <alejanafs28@gmail.com>
+Date:   Thu Sep 25 00:17:22 2025 -0600
+
+    Se agrego la interfaz grafica a demas de que los metodos de agregar devuelven mesaje de acuerdo a lo que estaba pasando
+
+[33mcommit df8d75077ad9ef752b4db8e78d87992956b8e9bb[m
+Author: Alejandro Tejeda <alejanafs28@gmail.com>
+Date:   Wed Sep 24 22:47:47 2025 -0600
+
+    Se implemento la segunda slucion de lista ligada y se creo un metodo de addValue que convina ambas soluciones
+
+[33mcommit e2b062915740de29b08685ce452fc1b24c007eeb[m
+Author: Alejandro Tejeda <alejanafs28@gmail.com>
+Date:   Wed Sep 24 21:02:55 2025 -0600
+
+    Se agrego una pequeña implementacion de tablas hash con la solucion 1 (incertar valor en la casilla siguiente)
+
+[33mcommit 58ffc6bcc141940b568b482d27f63e56132aaab0[m
+Author: Alejandro Tejeda <alejanafs28@gmail.com>
+Date:   Mon Sep 1 19:23:22 2025 -0600
+
+    Se agrego verificacion de los numeros antes de ser enviados al servidor, se hace distincion entre private_a y a asi como en b, a demas se agrego una animacion
+
+[33mcommit dcbad339fdb423cb946e4ef839148bb4c8788dca[m
+Author: Alejandro Tejeda <alejanafs28@gmail.com>
+Date:   Mon Sep 1 18:24:24 2025 -0600
+
+    Se agergo una interfaz inicial para el algoritmo de Hellman
+
+[33mcommit 93018ae3226cc4a76530e86dd0584d1f04675182[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m
+Author: AlexTS21 <123427277+AlexTS21@users.noreply.github.com>
+Date:   Mon Sep 1 17:28:07 2025 -0600
+
+    Initial commit

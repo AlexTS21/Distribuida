@@ -1,0 +1,18 @@
+
+public class divicion {
+     public double divicion(int a, int b){
+      System.out.println("Llamada para Divicion dos datos (" + a + ", " + b + ")");
+
+        // servidor ocupado
+        try {
+            Thread.sleep(8000); // 8 segundos 
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        System.out.println("divicion completada: " + a + " / " + b + " = " + (a / b));
+      return a / b;
+    }
+}
+
+

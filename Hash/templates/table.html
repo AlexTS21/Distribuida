@@ -1,0 +1,90 @@
+<!doctype html>
+<html>
+<head>
+    <title>Tabla Hash</title>
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+    <header>Practica 2</header>
+    {% if message %}
+            <h3 class="mess"><b>{{ message }}</b></h3>
+    {% endif %}
+    <main>
+         
+        <div class="table-container">
+            <h2>Claves y Valores (Usuario)</h2>
+            <table>
+                <tr>
+                    <th>Clave</th>
+                    <th>Valor</th>
+                </tr>
+                {% for key, val in user_data %}
+                <tr>
+                    <td>{{ key }}</td>
+                    <td>{{ val }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+
+        </div>
+        <div class="table-container">
+    <div class="table-container">
+    <h2>Tabla Hash (Índice → Clave y Valor)</h2>
+    <table>
+        <tr>
+            <th>Índice</th>
+            <th>Clave</th>
+            <th>Valor</th>
+        </tr>
+        {% for idx, data in table %}
+        <tr>
+            <td>{{ idx }}</td>
+            <td>
+                {% if "keys" in data and data["keys"]|length > 0 %}
+                    <select>
+                        {% for k in data["keys"] %}
+                            <option>{{ k }}</option>
+                        {% endfor %}
+                    </select>
+                {% else %}
+                    {{ data["key"] }}
+                {% endif %}
+            </td>
+            <td>
+                {% if "values" in data and data["values"]|length > 0 %}
+                    <select>
+                        {% for v in data["values"] %}
+                            <option>{{ v }}</option>
+                        {% endfor %}
+                    </select>
+                {% else %}
+                    {{ data["value"] }}
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+    </main>
+
+    <div class="actions">
+         <h3>Agregar valor</h3>
+        <form method="post">
+            Key: <input type="text" name="key" required>
+            Value: <input type="text" name="value" required>
+            <button type="submit" name="add">Agregar</button>
+        </form>
+
+        <h3>Consultar valor</h3>
+        <form method="post">
+            Key: <input type="text" name="key_query" required>
+            <button type="submit" name="get">Consultar</button>
+        </form>
+
+       
+
+    </div>
+   
+</body>
+</html>
